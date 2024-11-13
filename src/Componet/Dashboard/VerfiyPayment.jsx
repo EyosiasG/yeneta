@@ -183,101 +183,170 @@ const Verify = () => {
 
 
     return (
-        <div className="p-5">
-            <div className="flex justify-center items-center w-full text-center mb-4">
-                <h1 className="text-4xl font-bold">Payment Verification Dashboard</h1>
+        <div className="min-h-screen bg-gray-50 p-8">
+            {/* Header Section */}
+            <div className="mb-8">
+                <h1 className="text-4xl font-bold text-gray-800 mb-2 tracking-tight">
+                    Payment Verification Center
+                </h1>
+                <p className="text-gray-600">Process and verify student payment submissions</p>
             </div>
-            <div className="mb-4 mx-10">
-  <label htmlFor="searchStudentId" className="block text-sm font-medium text-gray-700">Search by StudentId</label>
-  <div className="mt-1 relative rounded-md flex-row gap-4 shadow-sm">
-    <input
-      type="text"
-      name="searchStudentId"
-      id="searchStudentId"
-      className="focus:ring-indigo-500 focus:border-indigo-500 block  pl-7 h-11 w-72 pr-12 sm:text-sm border border-gray-400 rounded-md"
-      placeholder="Enter StudentId"
-      onChange={async (e) => {
-        const studentId = e.target.value;
-        if (studentId.trim() !== '') {
-          try {
-            const response = await fetch(`${import.meta.env.VITE_API}/api/searchById1/${studentId}`, { 
-              method: 'GET',
-            });
-            if (!response.ok) {
-              throw new Error("Failed to fetch data");
-            }
-            const data = await response.json();
-            if (data.status === 1) {
-              setReg(data.data); // Assuming the API returns a single student object
-            } else {
-              setReg([]); // Clear the list if no student is found or in case of other statuses
-            }
-          } catch (error) {
-            console.error('Error fetching student by ID:', error);
-          }
-        } else {
-          fetchPrograms(); // Reset to original list if input is cleared
-        }
-      }}
-  
-  />
-  
-  </div>
-  
-</div>
-            <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
-  <table className="w-full text-sm text-left text-gray-500 divide-y divide-color1">
-    <thead className="text-xs text-gray-700 uppercase bg-gray-200">
-      <tr>
-        <th scope="col" className="py-3 px-6">No</th>
-        <th scope="col" className="py-3 px-6">Student ID</th>
-        <th scope="col" className="py-3 px-6">Course</th>
-        <th scope="col" className="py-3 px-6">Name</th>
-        <th scope="col" className="py-3 px-6">Email</th>
-        <th scope="col" className="py-3 px-6">created_at</th>
-     
-        <th scope="col" className="py-3 px-6">Payment Status</th>
-        <th scope="col" className="py-3 px-6">Action</th>
-      </tr>
-    </thead>
-    <tbody>
-      {reg.length === 0 ? (
-        <tr>
-          <td colSpan="8" className="py-4 px-6 text-center text-gray-500">
-            No data available
-          </td>
-        </tr>
-      ) : (
-        reg.map((student, index) => (
-          <tr key={student.id} className="bg-white border-b hover:bg-gray-50">
-            <td className="py-4 px-6 font-bold">{index + 1 + offset}</td>
-            <td className="py-4 px-6">{student.StudentId}</td>
-            <td className="py-4 px-6">{student.Course}</td>
-            <td className="py-4 px-6">{student.Name}</td>
-            <td className="py-4 px-6">{student.Semester}</td>
-            <td className="py-4 px-6">{student.created_at.slice(0, 10)}</td>
-          
-            <td className="py-4 px-6">
-              <span className={student.PaymentStatus === "0" ? 'text-red-500 border border-red-500 rounded-md mx-2 px-2 py-1' : 'text-green-500 border border-green-500 rounded-md mx-2 px-2 py-1'}>
-                {student.PaymentStatus === "0" ? 'Unpaid' : 'Paid'}
-              </span>
-            </td>
-            <td className="py-4 px-6">
-              <button onClick={() => handleput(student)} className="bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center text-white">
-                Verify
-              </button>
-            </td>
-          </tr>
-        ))
-      )}
-    </tbody>
-  </table>
-</div>
 
-            <div className='flex justify-end mt-8 mx-10'>
-                    <button onClick={handlePrevious} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' disabled={offset === 0}>Previous</button>
-                    <button onClick={handleNext} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' disabled={offset > length}>Next</button>
+            {/* Search Section */}
+            <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+                <div className="max-w-md">
+                    <label htmlFor="searchStudentId" className="text-sm font-semibold text-gray-700 mb-2 block">
+                        Student Lookup
+                    </label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            name="searchStudentId"
+                            id="searchStudentId"
+                            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter Student ID to search..."
+                            onChange={async (e) => {
+                                const studentId = e.target.value;
+                                if (studentId.trim() !== '') {
+                                    try {
+                                        const response = await fetch(`${import.meta.env.VITE_API}/api/searchById1/${studentId}`, { 
+                                            method: 'GET',
+                                        });
+                                        if (!response.ok) {
+                                            throw new Error("Failed to fetch data");
+                                        }
+                                        const data = await response.json();
+                                        if (data.status === 1) {
+                                            setReg(data.data); // Assuming the API returns a single student object
+                                        } else {
+                                            setReg([]); // Clear the list if no student is found or in case of other statuses
+                                        }
+                                    } catch (error) {
+                                        console.error('Error fetching student by ID:', error);
+                                    }
+                                } else {
+                                    fetchPrograms(); // Reset to original list if input is cleared
+                                }
+                            }}
+                        />
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-gray-50 border-b border-gray-100">
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">No</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student ID</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Course</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Submission Date</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Payment Status</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {reg.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
+                                        <div className="flex flex-col items-center">
+                                            <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            </svg>
+                                            <p className="text-lg font-medium">No pending verifications</p>
+                                            <p className="text-sm text-gray-400">All payments have been processed</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                reg.map((student, index) => (
+                                    <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {index + 1 + offset}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {student.StudentId}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {student.Course}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {student.Name}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {student.Semester}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {student.created_at.slice(0, 10)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                                ${student.PaymentStatus === "0" 
+                                                    ? 'bg-red-50 text-red-700' 
+                                                    : 'bg-green-50 text-green-700'
+                                                }`}>
+                                                <span className={`w-2 h-2 rounded-full mr-2
+                                                    ${student.PaymentStatus === "0" 
+                                                        ? 'bg-red-400' 
+                                                        : 'bg-green-400'
+                                                    }`}>
+                                                </span>
+                                                {student.PaymentStatus === "0" ? 'Unpaid' : 'Paid'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            <button
+                                                onClick={() => handleput(student)}
+                                                className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                                            >
+                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                Verify
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                    <div className="flex justify-end space-x-3">
+                        <button
+                            onClick={handlePrevious}
+                            disabled={offset === 0}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Previous
+                        </button>
+                        <button
+                            onClick={handleNext}
+                            disabled={offset > length}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Next
+                            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

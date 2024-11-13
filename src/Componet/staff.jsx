@@ -1,408 +1,272 @@
-import Hero1 from '../assets/img/hero7.png'
-import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import useStore from '../store/store';
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import Slider from 'react-slick';
-import Ceo from "../assets/img/11/ccc.png";
-import fot2 from '../assets/img/fot3.jpg';
-import Hero3 from "../assets/img/qqqq.jpg";
-const Staff = () => {
-  const setService = useStore((state) => state.setService);
-  const service = useStore((state) => state.service);
-  const setGallery = useStore((state) => state.setGallery);
-  const gallery = useStore((state) => state.gallery);
-  
-  const en = useStore((state) => state.en);
+import Hero from './hero';
 
-  const setDrive_i = useStore((state) => state.setDrive_i);
-  const drive_i = useStore((state) => state.drive_i);
-  const { setAbout_link,setAboutImgUrl, setAboutDescriptionAm,setAboutDescription, setAboutus, setProgram, setEvent, setBlog, setStaff, setTestimonials ,about, program, event, blog, staff, testimonials ,about_link,about_description,about_description_am,about_imgurl } = useStore();
-  const {  setA_Ceo, setA_Why, setA_Aboutus, setA_Service, setA_Program, setA_Blog, setA_Event ,a_Contactus,setA_Contactus, setA_Staff, setA_Gallery, setA_Testimonials, a_Why, a_Ceo, a_Aboutus,a_Event,  a_Service, a_Program, a_Blog, a_Staff, a_Gallery, a_Testimonials } = useStore();
-  const images = [
-    "storage\/images\/oOzBPBWsECeacXm0tJ1pEEvNbA1wJ1vrnAhKAnQV.jpg",
-    "storage\/images\/qIbjQwCrQeLz63D8oylkDo2p7u2QbQhWLadwnyz1.jpg",
-    "storage\/images\/rgxFTgd045s56qRC9tCuDapT69i5KvUznkrINFhS.png",
-    "storage\/images\/oOzBPBWsECeacXm0tJ1pEEvNbA1wJ1vrnAhKAnQV.jpg",
-    "storage\/images\/qIbjQwCrQeLz63D8oylkDo2p7u2QbQhWLadwnyz1.jpg",
-    "storage\/images\/rgxFTgd045s56qRC9tCuDapT69i5KvUznkrINFhS.png",
-    // Add more images as needed
-  ];
-  
-  const [sliderSettings, setSliderSettings] = useState({
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: true,
-  });
+const Staff = ({ isHome = false }) => {
+  const {
+    en,
+    setA_Testimonials,
+    setA_Event,
+    setA_Aboutus,
+    setA_Program,
+    setA_Staff,
+    setA_Ceo,
+    setA_Contactus,
+    setAbout_link,
+    setAboutImgUrl,
+    setAboutDescriptionAm,
+    setAboutDescription,
+    setService,
+    setProgram,
+    setEvent,
+    setBlog,
+    setStaff,
+    setTestimonials,
+    setGallery,
+    a_Staff,
+  } = useStore();
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchData = async (endpoint) => {
+    const response = await fetch(`${import.meta.env.VITE_API}/api/${endpoint}`);
+    return response.json();
+  };
+
+  const handleEndpointData = (data, endpoint) => {
+    if (data.status !== 1) return;
+
+    const handlers = {
+      Testimonial: () => setA_Testimonials(data.data),
+      Events: () => setA_Event(data.data),
+      aboutus: () => {
+        setA_Aboutus(data.data);
+        const aboutData = data.data[0];
+        setAbout_link(aboutData.link);
+        setAboutImgUrl(aboutData.img_url);
+        setAboutDescriptionAm(aboutData.description_am);
+        setAboutDescription(aboutData.description);
+      },
+      programs: () => setA_Program(data.data),
+      Staff: () => {
+        setA_Staff(data.data);
+        const ceo = data.data.find(item => item.position === "CEO");
+        if (ceo) setA_Ceo(ceo);
+      },
+      contactus: () => setA_Contactus(data.data),
+      mainTitle: () => handleMainTitles(data.data)
+    };
+
+    handlers[endpoint]?.();
+  };
 
   useEffect(() => {
-    const updateSliderSettings = () => {
-      const width = window.innerWidth;
-      setSliderSettings(prevSettings => ({
-        ...prevSettings,
-        slidesToShow: width > 1668 ? 6 : width > 1425 ? 5 : width > 1122 ? 4 : width > 865 ? 3 : width > 470 ? 2 : 1,
-      }));
+    const fetchAllData = async () => {
+      try {
+        const endpoints = [
+          'Testimonial',
+          'Events', 
+          'aboutus',
+          'programs',
+          'Staff',
+          'contactus',
+          'mainTitle'
+        ];
+
+        const responses = await Promise.all(
+          endpoints.map(endpoint => fetchData(endpoint))
+        );
+
+        responses.forEach((data, index) => {
+          handleEndpointData(data, endpoints[index]);
+        });
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setIsLoading(false);
+      }
     };
 
-    updateSliderSettings();
-    window.addEventListener('resize', updateSliderSettings);
-
-    return () => {
-      window.removeEventListener('resize', updateSliderSettings);
-    };
+    fetchAllData();
   }, []);
 
-useEffect(() => {
-  async function fetchData() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/dispatcher/all_rides?dispatcher_id=${userid}`;
+  const handleMainTitles = (data) => {
+    const titleSetters = {
+      'Aboutus': setAboutus,
+      'Service': setService, 
+      'Program': setProgram,
+      'Event': setEvent,
+      'Blog': setBlog,
+      'Staff': setStaff,
+      'Testimonials': setTestimonials,
+      'Gallery': setGallery
+    };
 
-    const response = await fetch(allRides, {
-      method: "GET",
+    data.forEach(item => {
+      titleSetters[item.name]?.(item);
     });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
+  };
 
-    const data = await response.json();
-    if (data.status === "1") {
-      setallRides(data.rides);
-    } else {
-      return;
-    }
-  }
-  fetchData();
-}, []);
-
-useEffect(() => {
-  
-  async function Testimonials() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/Testimonial`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-
-    const data = await response.json();
-    if (data.status === 1) {
-      setA_Testimonials(data.data);
-
-    } else {
-      return;
-    }
-  }
-  Testimonials();
-  async function events() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/Events`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-
-    const data = await response.json();
-    if (data.status === 1) {
-      setA_Event(data.data);
-
-    } else {
-      return;
-    }
-  }
-  events();
-  
- 
-  async function aboutus() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/aboutus`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-
-    const data = await response.json();
-    if (data.status === 1) {
-      setA_Aboutus(data.data);
-      setAbout_link(data.data[0].link);
-      setAboutImgUrl(data.data[0].img_url);
-      setAboutDescriptionAm(data.data[0].description_am);
-      setAboutDescription(data.data[0].description);
-      console.log(a_Aboutus);
-
-    } else {
-      return;
-    }
-  }
-  aboutus();
-  async function programs() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/programs`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-    if (data.status === 1) {
-     setA_Program(data.data);
-   
-    } else {
-      return;
-    }
-  }
-  programs();
-  async function staff() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/Staff`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-    if (data.status === 1) {
-     setA_Staff(data.data);
-
-     data.data.forEach((item) => {
-      if (item.position === "CEO") {
-        setA_Ceo(item)
-        console.log(a_Ceo,"ddasasasa");
-      }
-      
-    });
-
-
-      return;
-    }
-  }
-  staff();
-}, []);
-useEffect(() => {
-  async function contactus() {
- const allRides = `${import.meta.env.VITE_API}/api/contactus`;
-
- try {
-     const response = await fetch(allRides, {
-         method: "GET",
-     });
-
-     if (!response.ok) {
-         throw new Error("Network response was not ok");
-     }
-
-     const data = await response.json();
-
-     if (data.status === 1) {
-         setA_Contactus(data.data);
-         console.log(a_Contactus);
-         return;
-     }
- } catch (error) {
-     console.error("Error fetching contactus data:", error);
- }
-}
- contactus();
-}, []);
-useEffect(() => {
-
-  async function fetchData() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/mainTitle`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    
-    const data1 = await response.json();
-    
-    if (data1.status === 1) {
-    
-      data1.data.forEach((item) => {
-        switch (item.name) {
-          case 'Aboutus':
-            setAboutus(item);
-            break;
-          case 'Service':
-            setService(item);
-            break;
-          case 'Program':
-            setProgram(item);
-            break;
-          case 'Event':
-            setEvent(item);
-            break;
-          case 'Blog':
-            setBlog(item);
-            break;
-          case 'Staff':
-            setStaff(item);
-            break;
-          case 'Testimonials':
-            setTestimonials(item);
-            break;
-          case 'Gallery':
-            setGallery(item);
-            break;
-          default:
-            console.log('Unknown section:', item.name);
-        }
-      });
-    }
-    else {
-     return;
-   }
-    }
-
-  
-    fetchData();
-  }, [setAboutus, setService, setProgram, setEvent, setBlog, setStaff, setTestimonials, setGallery]);
-
-
-
-return (
-    <>
-
-<div  className="container-fluid py-5  max-h-[16rem] sm:max-h-[26rem] md:max-h-[56rem] min-h-fit bg-contain bg-center hero-header flex justify-center items-center" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(55, 55, 55, 0.2)), url(${Hero1})` }}>
-      <div className="container py-5 ">
-        <div className="row g-5 flex ">
-          <div className="col-lg-7 col-md-12 ">
-            {en ?(
-              
-            <h1 className="mb-5  lg:text-8xl text-6xl md:text-7xl sm:text-6xl  text-white text-center display-1 family-poppins font-black">Staff</h1>
-            ):(
-
-              <h1 className="mb-5  lg:text-8xl text-6xl md:text-7xl sm:text-7xl  text-white display-1 family-poppins font-black">ሰራተኞች</h1>
-            )}
-            
-          </div>
-        </div>
+  const renderLoadingSpinner = () => (
+    <div className="flex justify-center items-center h-screen bg-gradient-to-r from-indigo-50 to-purple-50">
+      <div className="relative">
+        <div className="w-20 h-20 border-4 border-color1 rounded-full animate-ping absolute"></div>
+        <div className="w-20 h-20 border-4 border-color1 rounded-full animate-pulse"></div>
       </div>
     </div>
-    <div
-        className=" bg-cover bg-center  "
-        style={{
-          backgroundImage: `linear-gradient(rgba(250,250, 250, 0.3), rgba(255, 255, 255, 0.2)), url(${fot2})`,
-        }}
-      >
-        <div className=" flex flex-col justify-center items-center  mb-12 text-center  py-20">
-          <h4 className="mb-8 inline-block px-4 py-2 border-b-4 border-color1 -500 text-3xl text-color1 -600   rounded-3xl px-2 rounded-lg text-center w-fit text-center ">
-            {en ? "Our Staff" : "የእኛ ሰራተኞች"}
-          </h4>
-          {a_Staff
-            .filter((member) => member.position === "CEO")
-            .map((member, index) => (
-              <div
-                key={index}
-                className="bg-white/80 rounded-2xl shadow-2xl w-full sm:w-[85vw] hover:shadow-lg hover:shadow-secondary py-10"
-              >
-                <div className="flex lg:flex-row flex-col w-full lg:items-center md:items-center gap-2 pt-4 px-8">
-           
-           <div className="flex flex-col">
+  );
+
+  const renderCEOSection = () => (
+    a_Staff
+      .filter(member => member.position === "CEO")
+      .map((member, index) => (
+        <motion.div
+          key={index}
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="relative bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-2xl overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent -skew-x-12"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 p-12 relative z-10">
+            <div className="lg:col-span-4">
+              <div className="space-y-6">
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-color1 to-purple-600 rounded-2xl blur opacity-50 group-hover:opacity-75 transition duration-500"></div>
                   <img
-                   src={`${import.meta.env.VITE_IMG_URL}/${member.image}`}
-                    className="max-w-full sm:max-w-[40vw] md:max-w-[30vw] max-w-[100vw] shadow-2xl hover:shadow-color1 max-h-[60vh] rounded-2xl"
-                    alt=""
-                    
+                    src={`${import.meta.env.VITE_IMG_URL}/${member.image}`}
+                    className="relative w-full rounded-2xl shadow-xl"
+                    alt={member.name}
                   />
-                  <a href="cast"  className="text-white rounded-md border px-4 py-2 bg-color1 display-1 text-lg">My Biography</a>
+                </div>
+                <motion.a 
+                  href="Biography"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="block text-center bg-gradient-to-r from-color1 to-purple-600 text-white py-4 px-8 rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
+                >
+                  View Biography
+                </motion.a>
+              </div>
+            </div>
 
-</div>
-                  <div className="p-4 pt-10">
-                    <h4 className="text-4xl text-center font-bold display-1 text-[darkblue]">
-                      {a_Ceo.name}
-                    </h4>
+            <div className="lg:col-span-8 space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-color1 to-purple-600">
+                  {member.name}
+                </h3>
+                <p className="text-2xl font-semibold text-gray-700">{en ? member.subtitle : member.subtitle_am}</p>
+                <p className="text-lg text-color1">{member.social_link}</p>
+              </div>
 
-                    <h6 className="mb-1 text-center py-1 text-xl text-orange-400">
-                      {en ? a_Ceo.subtitle : a_Ceo.subtitle_am}
-                    </h6>
-                    <h6 className="mb-1 text-center py-1 md:text-xl text-orange-400">
-                      {en ? a_Ceo.social_link : a_Ceo.social_link}
-                    </h6>
-                    <p className="w-full mt-2 px-0 md:px-4 text-normal md:text-2xl">
-                      <p className="">
-                        <span className="text-center  mb-10 font-bold display-1 text-xl md:text-3xl">🌟 Welcome to Yeneta Language and Cultural Academy! 🌟</span>. <br />. <br />
-
-                       
-                        {en ? member.details: member.details_am}
-                        <br /><br />
-                        <span className="font-bold text-secondary display-1">Warm regards,
-                          <br />
-                          {en ? member.name: member.name}
-                          <br />
-                          {en ? member.subtitle: member.subtitle_am}
-                          <br />
-                          Yeneta Language and Cultural Academy</span>
-                      </p>
+              <div className="prose prose-lg max-w-none">
+                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-8 shadow-inner">
+                  <h4 className="text-3xl font-bold text-center mb-6 text-gray-800">
+                    ✨ Welcome to Yeneta Language and Cultural Academy ✨
+                  </h4>
+                  <p className="text-gray-700 leading-relaxed text-lg">
+                    {en ? member.details : member.details_am}
+                  </p>
+                  <div className="mt-8 text-right border-t pt-6 border-gray-200">
+                    <p className="font-bold text-gray-800 space-y-1">
+                      <span className="block">Warm regards,</span>
+                      <span className="block text-xl text-color1">{member.name}</span>
+                      <span className="block text-gray-600">{en ? member.subtitle : member.subtitle_am}</span>
+                      <span className="block italic">Yeneta Language and Cultural Academy</span>
                     </p>
                   </div>
                 </div>
               </div>
-                ))}
-        </div>
-        
-        <div className='my-16 p-8 shadow-lg rounded-lg bg-white/90'>
-  <h1 className='text-center text-3xl md:text-4xl font-bold py-4 rounded-md shadow-lg shadow-color1 display-1  text-color1 '>{en ? 'Our Teams' : 'የእኛ ቡድኖች'}</h1>
-  <div className="flex overflow-x-auto snap-x snap-mandatory  max-w-[100vw] justify-start xl:justify-center gap-4 md:gap-8 py-16 pl-2 -px-2 md:-px-8 ">
-      {a_Staff
-        .filter(member => member.position !== "CEO")
-        .map((member, index) => (
-          <div key={index} className="gap-8">
-               <div
-                key={event.id}
-                className="bg-white w-[14rem] sm:min-w-[10rem] h-[5rem] md:h-[11rem]  max-w-xs sm:max-w-sm md:min-h-96 md:min-w-72 lg:max-w-sm relative shadow-2xl hover:shadow-secondary border-b-[10px] border-color1 rounded-md pb-10 hover:bg-white transform hover:scale-105 hover:-translate-y-1 transition-transform duration-300 snap-center"
-                style={{ flexGrow: 0, flexShrink: 0 }}
-              >
-                <img
-                src={`${import.meta.env.VITE_IMG_URL}/${member.image}`}
-                alt={en ? member.name : member.name_am}
-                className="w-full h-full object-contain bg-contain min-h-[80%]"
-              />
-              <div className="absolute bottom-0 text-center bg-white/70 w-full">
-                <h4 className="display-1 text-xl md:text-2xl font-bold">{en ? member.name : member.name_am}</h4>
-                <div className="flex flex-row justify-center gap-1 items-center">
-                  <i className="fas fa-envelope text-blue-900"></i>
-                  <p className="text-sm md:text-lg font-semibold text-blue-900">{member.social_link}</p>
-                </div>
-                <p className="text-sm display-1 md:text-lg font-semibold">
-                  {en ? member.position : member.position_am}
-                </p>
-              </div>
             </div>
           </div>
-        ))}
-    </div>
-</div>
+        </motion.div>
+      ))
+  );
 
+  const renderTeamMember = (member, index) => (
+    <motion.div
+      key={index}
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+      className="group"
+    >
+      <div className="relative transform transition-all duration-300 group-hover:scale-105">
+        <div className="absolute inset-0 bg-gradient-to-r from-color1 to-purple-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
+        <motion.div
+          className="relative bg-white rounded-2xl overflow-hidden shadow-xl"
+          style={{ width: '280px', height: '400px' }}
+        >
+          <div className="h-3/4 overflow-hidden">
+            <img
+              src={`${import.meta.env.VITE_IMG_URL}/${member.image}`}
+              alt={en ? member.name : member.name_am}
+              className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
+            />
+          </div>
+          <div className="absolute bottom-0 w-full bg-white/95 backdrop-blur-sm p-6 space-y-2">
+            <h4 className="text-xl font-bold text-gray-800 group-hover:text-color1 transition-colors">
+              {en ? member.name : member.name_am}
+            </h4>
+            <p className="text-color1 font-medium">
+              {en ? member.position : member.position_am}
+            </p>
+            <div className="flex items-center gap-2 text-gray-600">
+              <i className="fas fa-envelope text-color1"></i>
+              <p className="text-sm truncate">{member.social_link}</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
 
-</div>     
-          
-</>
+  if (isLoading) {
+    return renderLoadingSpinner();
+  }
+
+  return (
+    <>
+      {!isHome && <Hero eng="Staff" amh="ሰራተኞች"/>}
+
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
+        <div className="container mx-auto px-6 py-20">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-center mb-20"
+          >
+            <h2 className="inline-block px-8 py-4 text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-color1 to-purple-600 border-b-4 border-color1 rounded-xl">
+              {en ? "Meet Our Leadership" : "የእኛ አመራር"}
+            </h2>
+          </motion.div>
+
+          {renderCEOSection()}
+
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-32"
+          >
+            <h2 className="text-4xl font-bold text-center mb-20 bg-clip-text text-transparent bg-gradient-to-r from-color1 to-purple-600">
+              {en ? 'Our Amazing Team' : 'የእኛ ቡድኖች'}
+            </h2>
+            
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-8 pb-8 px-4 scrollbar-hide">
+              <div className="flex gap-8">
+                {a_Staff
+                  .filter(member => member.position !== "CEO")
+                  .map((member, index) => renderTeamMember(member, index))}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </>
   );
 };
 

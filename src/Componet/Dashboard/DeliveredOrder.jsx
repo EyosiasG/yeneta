@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+                                                    import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import useStore from '../../store/store';
 import { useForm } from 'react-hook-form';
-import Hero1 from '../../assets/img/hero7.png'
-import { faCoffee } from '@fortawesome/free-solid-svg-icons';
+ 
 import { faPenToSquare} from '@fortawesome/free-solid-svg-icons';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Swal from 'sweetalert2';
+import DashboardTable from '../../components/DashboardTable';
 
 library.add(fas);
 const DeliveredOrder = () => {
@@ -187,6 +187,32 @@ const onSubmit = async (data) => {
   }}
 };
 
+const columns = [
+  { header: 'First Name', field: 'first_name' },
+  { header: 'Last Name', field: 'last_name' },
+  { header: 'Email', field: 'email' },
+  { header: 'Phone', field: 'phone' },
+  { header: 'Address 1', field: 'address1' },
+  { header: 'Address 2', field: 'address2' },
+  { header: 'City', field: 'city' },
+  { header: 'State', field: 'state' },
+  { header: 'Zip Code', field: 'zipcode' },
+  { 
+    header: 'Delivery Status', 
+    field: 'deliveryStatus',
+    render: (order) => (
+      <span className={`px-2 py-1 rounded-lg font-bold border-2 ${
+        order.deliveryStatus === 'Unpaid' ? 'text-red-500 border-red-500' : 
+        order.deliveryStatus === 'Pending' ? 'text-yellow-500 border-yellow-500' : 
+        order.deliveryStatus === 'OnRoute' ? 'text-blue-500 border-blue-500' : 
+        'text-green-500 border-green-500'
+      }`}>
+        {order.deliveryStatus}
+      </span>
+    )
+  },
+  { header: 'Order No', field: 'orderNo' },
+];
 
   return (
     <div className='pt-10'>
@@ -237,73 +263,19 @@ if (studentId.trim() !== '') {
 
 
 </div>
-<div className='rounded-lg shadow-2xl shadow-color1 -900/70 bg-white flex justify-center p-1 mx-5 min-h-[80vh] '>
-<div className='overflow-x-auto'><div className="overflow-x-auto relative w-full shadow-md sm:rounded-lg">
-<table className="w-full text-sm text-left text-black ">
-<thead className="text-xs text-black uppercase bg-gray-300 ">
-<tr>
-<th scope="col" className="px-6 py-3">No</th>
-<th scope="col" className="px-6 py-3">First Name</th>
-<th scope="col" className="px-6 py-3">Last Name</th>
-<th scope="col" className="px-6 py-3">Email</th>
-<th scope="col" className="px-6 py-3">Phone</th>
-<th scope="col" className="px-6 py-3">Address 1</th>
-<th scope="col" className="px-6 py-3">Address 2</th>
-<th scope="col" className="px-6 py-3">City</th>
-<th scope="col" className="px-6 py-3">State</th>
-<th scope="col" className="px-6 py-3">Zip Code</th>
-<th scope="col" className="px-6 py-3">Delivery Status</th>
-<th scope="col" className="px-6 py-3">Order No</th>
-<th scope="col" className="px-6 py-3">Action</th>
-</tr>
-</thead>
-<tbody className="bg-white divide-y divide-gray-200">
-{order.length > 0 ? (
-  order.map((order, index) => (
-    <tr key={order.id}>
-      <td className="px-6 py-4 whitespace-nowrap">{index + 1 + offset}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.first_name}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.last_name}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.email}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.phone}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.address1}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.address2}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.city}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.state}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{order.zipcode}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <span className={`px-2 py-1 rounded-lg font-bold border-2 ${order.deliveryStatus === 'Unpaid' ? 'text-red-500 border-red-500' : order.deliveryStatus === 'Pending' ? 'text-yellow-500 border-yellow-500' : order.deliveryStatus === 'OnRoute' ? 'text-blue-500 border-blue-500' : 'text-green-500 border-green-500'}`}>
-          {order.deliveryStatus}
-        </span>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap font-bold">{order.orderNo}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex justify-end space-x-2">
-          <button onClick={() => { setEditingProgram(order); toggleForm(true); }} className="w-full px-6 py-1 text-lg rounded-md border-2 border-teal-600 text-teal-500 hover:text-teal-700">
-            <FontAwesomeIcon icon={faPenToSquare} />
-          </button>
-        </div>
-      </td>
-    </tr>
-  ))
-) : (
-  <tr>
-    <td colSpan="13" className="px-6 py-4 text-center text-gray-500">No orders found</td>
-  </tr>
-)}
-</tbody>
-</table>
-
-
-</div>
-<div className='flex justify-end mt-8 mx-10'>
-<button onClick={handlePrevious} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' disabled={offset === 0}>Previous</button>
-<button onClick={handleNext} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' 
-disabled={offset > length - 10} 
->Next</button>
-</div>
-</div>
-</div>
+<DashboardTable 
+  columns={columns}
+  data={order}
+  onEdit={(order) => { 
+    setEditingProgram(order); 
+    toggleForm(true); 
+  }}
+  offset={offset}
+  onPrevious={handlePrevious}
+  onNext={handleNext}
+  totalLength={length}
+  limit={10}
+/>
 <button onClick={toggleForm}>X</button>
 {showForm &&(  <div className='bg-black/60 ' style={{ position: 'absolute', top: '0%', left: '0%', width: '100%', height: '100%', overflowY: 'auto',  padding: '20px' }}>
 <button onClick={toggleForm} className=' text-white text-xl mx-[95%] my-12 z-50 bg-red-600 rounded-full h-10 w-10 '>X</button>

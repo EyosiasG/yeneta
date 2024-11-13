@@ -1,214 +1,285 @@
-import Hero3 from "../assets/img/qqqq.webp";
-import zzz from "../assets/img/zzz.webp";
-import Hero1 from '../assets/img/hero7.png'
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useStore from '../store/store';
 import { Link } from "react-router-dom";
-const Program = () => {
-  const setService = useStore((state) => state.setService);
-  const service = useStore((state) => state.service);
-  const setGallery = useStore((state) => state.setGallery);
-  const gallery = useStore((state) => state.gallery);
-  
-  
-  const en = useStore((state) => state.en);
+import { motion } from 'framer-motion';
 
- const { setAbout_link,setAboutImgUrl, setAboutDescriptionAm,setAboutDescription, setAboutus, setProgram, setEvent, setBlog, setStaff, setTestimonials ,about, program, event, blog, staff, testimonials ,about_link,about_description,about_description_am,about_imgurl } = useStore();
-  const {  setA_Ceo, setA_Why, setA_Aboutus, setA_Service, setA_Program, setA_Blog, setA_Event ,a_Contactus,setA_Contactus, setA_Staff, setA_Gallery, setA_Testimonials, a_Why, a_Ceo, a_Aboutus,a_Event,  a_Service, a_Program, a_Blog, a_Staff, a_Gallery, a_Testimonials } = useStore();
-  
+const Program = ({ isHome = false }) => {
+  const {
+    en,
+    setProgram,
+    setA_Program,
+    a_Program
+  } = useStore();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
-useEffect(() => {
-  
-  async function programs() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/programs`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-    if (data.status === 1) {
-     setA_Program(data.data);
-   
-    } else {
-      return;
-    }
-  }
-  programs();
-}, []);
-useEffect(() => {
-
-  async function fetchData() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/mainTitle`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    
-    const data1 = await response.json();
-    
-    if (data1.status === 1) {
-    
-      data1.data.forEach((item) => {
-        switch (item.name) {
-          case 'Aboutus':
-            setAboutus(item);
-            break;
-          case 'Service':
-            setService(item);
-            break;
-          case 'Program':
-            setProgram(item);
-            break;
-          case 'Event':
-            setEvent(item);
-            break;
-          case 'Blog':
-            setBlog(item);
-            break;
-          case 'Staff':
-            setStaff(item);
-            break;
-          case 'Testimonials':
-            setTestimonials(item);
-            break;
-          case 'Gallery':
-            setGallery(item);
-            break;
-          default:
-            console.log('Unknown section:', item.name);
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API}/api/programs`);
+        if (!response.ok) throw new Error("Network response was not ok");
+        
+        const data = await response.json();
+        if (data.status === 1) {
+          setA_Program(data.data);
         }
-      });
-    }
-    else {
-     return;
-   }
-    }
+      } catch (error) {
+        console.error("Error fetching programs:", error);
+      }
+    };
 
-  
-    fetchData();
-  }, [setAboutus, setService, setProgram, setEvent, setBlog, setStaff, setTestimonials, setGallery]);
+    fetchPrograms();
+  }, []);
 
+  useEffect(() => {
+    const fetchMainTitle = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API}/api/mainTitle`);
+        if (!response.ok) throw new Error("Network response was not ok");
 
+        const data = await response.json();
+        if (data.status === 1) {
+          const sectionSetters = {
+            'Program': setProgram,
+          };
 
-return (
+          data.data.forEach(item => {
+            const setter = sectionSetters[item.name];
+            if (setter) {
+              setter(item);
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching main title:", error);
+      }
+    };
+
+    fetchMainTitle();
+  }, [setProgram]);
+
+  const filteredPrograms = a_Program
+    .sort((a, b) => a.Course.localeCompare(b.Course))
+    .filter((program) => program.title !== "Special class");
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPrograms = isHome ? filteredPrograms.slice(0, 9) : filteredPrograms.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredPrograms.length / itemsPerPage);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo(0, 0);
+  };
+
+  const renderDotPattern = () => (
+    <svg width="400" height="100">
+      {[...Array(10)].map((_, i) => (
+        [...Array(10)].map((_, j) => (
+          <circle 
+            key={`${i}-${j}`}
+            cx={i * 10 + 5} 
+            cy={j * 10 + 5} 
+            r="2" 
+            fill="#FFA500"
+          />
+        ))
+      ))}
+    </svg>
+  );
+
+  return (
     <>
-<div
-        className="bg-cover bg-center relative "
-        style={{
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url(${Hero3})`,
-        }}
-      >
-        <div className="container mx-auto py-20 px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <h4 className="mb-4 inline-block p-2 border-b-4 border-color1 text-color1 text-lg rounded-l-3xl  rounded-r-md">
-              {en ? "Our Programs" : "ክፍሎች"}
+      
+      <div className="bg-cover bg-center relative min-h-screen overflow-hidden bg-stone-100">
+<div className='absolute top-10 left-4 w-full h-full'>
+{renderDotPattern()}
+
+</div>
+
+        <div className="container relative mx-auto py-20 px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl mx-auto"
+          >
+            <h4 className="mb-4 inline-block p-4 border-b-4 border-orange-400 text-orange-500 text-2xl rounded-full shadow-xl backdrop-blur-sm">
+              {en ? "🌟 Our Magical Programs 🌟" : "✨ ክፍሎች ✨"}
             </h4>
-            <h1 className="mb-5 text-3xl sm:text-4xl lg:text-5xl text-[#d4aa3b] font-bold py-10">
-              {en ? "We Offer An Exclusive Program For Kids" : "ለልጆች የተለየ እቅድ እናቀርባለን"}
+            <h1 className="mb-8 text-3xl sm:text-4xl lg:text-5xl text-orange-600 font-bold py-10 px-10 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-pink-500">
+              {en ? "Join Our Wonderful World of Learning!" : "አስደሳች የትምህርት ዓለም ይቀላቀሉ!"}
             </h1>
-          </div>
-          <div className="absolute  top-0 sm:top-10 right-0  bg-secondary rounded-full h-96 w-96 shadow-md border-8 border-dotted border-white  text-[12px] text-center px-2  text-white ">
-           <div className="relative flex justify-center items-center  py-24 ">
+          </motion.div>
 
-           <p className="font-extrabold">
-        
-        🎉 Yeneta Language and Cultural Academy: Second Round Registration Open Now! 🎉 <br/>
-        
-        🚀 Class Start Date: September 16, 2024   <br/>
-        💰 Save $20/month on tuition when you register today   <br/>
-        👨‍👩‍👧‍👦 Extra Savings: Get an additional $10 off for each child if you’re enrolling more than one   <br/>
-        
-        Give your kids the gift of Ethiopian language, cultural instruments and many more learning! Don’t miss out—enroll now and start saving! 📚🎶
-                    </p>
-            <div style={{ backgroundImage: `url(${zzz})`,  }} className=" absolute -top-9 -right-2 w-32 h-32 bg-contain bg-no-repeat ">
-
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="lg:absolute lg:top-5 lg:-right-24 mx-4 lg:mx-0 mt-8 lg:mt-0 bg-gradient-to-r from-orange-500/90 to-orange-500/90 rounded-full p-4 lg:p-8 max-w-full lg:max-w-md shadow-2xl border-4 lg:border-8 border-dashed border-white/70"
+          >
+            <div className="text-white text-center space-y-2 lg:space-y-4">
+              <h3 className="text-lg lg:text-xl font-bold mb-2 lg:mb-4 animate-pulse">🎈 Special Announcement 🎈</h3>
+              <p className="text-xs lg:text-sm leading-relaxed">
+                Join Yeneta's Magical Adventure! 🌈<br/>
+                🎯 New Classes: September 16, 2024<br/>
+                🎁 Save $20 Monthly - Register Today!<br/>
+                👨‍👩‍👧‍👦 Family Bonus: $10 off per additional child<br/>
+                ✨ Discover Ethiopian Culture Through Fun & Play! ✨
+              </p>
             </div>
+          </motion.div>
 
-           </div>
-            
-          </div>
-          <div className="flex flex-wrap gap-4 justify-center">
-            {a_Program
-              .sort((a, b) => a.Course.localeCompare(b.Course))
-              .filter((program) => program.title !== "Special class")
-              .map((program) => (
-                <div key={program.id} className="p-1 py-10 w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 ">
-                  <div className="rounded-lg bg-white shadow-2xl hover:shadow-secondary transform hover:scale-105 hover:-translate-y-1 transition-transform duration-300">
-                    <div className="relative">
-                      <div className="overflow-hidden rounded-l-3xl rounded-t-xl rounded-r-3xl">
-                        <img
-                          src={`${import.meta.env.VITE_IMG_URL}/${program.img_url}`}
-                          alt="Program Image"
-                          className="object-contain w-full h-48 sm:h-56 lg:h-64 "
-                        />
+          <div className="flex flex-wrap gap-8 justify-center mt-24">
+            {currentPrograms.map((program, index) => (
+              <motion.div 
+                key={program.id}
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="w-full sm:w-1/2 lg:w-1/3 xl:w-1/4"
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 border-4 border-orange-200 h-[600px] flex flex-col">
+                  <div className="relative h-64 overflow-hidden">
+                    <img
+                      src={`${import.meta.env.VITE_IMG_URL}/${program.img_url}`}
+                      alt="Program Image"
+                      className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500"
+                    />
+                    <motion.div 
+                      className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-xl px-4 py-3 shadow-lg"
+                      whileHover={{ scale: 1.05, rotate: 0 }}
+                      initial={{ rotate: 12 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="relative">
+                        <div className="absolute -top-4 -right-4">
+                          <motion.div 
+                            className="relative group"
+                            whileHover={{ scale: 1.1 }}
+                          >
+                            <div className="absolute inset-0 bg-red-500 rounded-full blur-md animate-pulse"></div>
+                            
+                            <motion.div 
+                              className="relative bg-gradient-to-r from-red-500 via-pink-500 to-red-500 text-white text-xs font-bold py-2 px-3 rounded-full shadow-lg border border-white/20 backdrop-blur-sm"
+                              animate={{ 
+                                scale: [1, 1.1, 1],
+                                rotate: [0, 5, -5, 0],
+                                background: ['linear-gradient(to right, #ef4444, #ec4899, #ef4444)']
+                              }}
+                              transition={{ 
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            >
+                              <span className="mix-blend-plus-lighter">
+                                SAVE $20!
+                              </span>
+                              
+                              <motion.span 
+                                className="absolute -top-1 -right-1 text-yellow-300"
+                                animate={{ 
+                                  opacity: [0, 1, 0],
+                                  scale: [0.8, 1.2, 0.8],
+                                }}
+                                transition={{ 
+                                  duration: 2,
+                                  repeat: Infinity,
+                                }}
+                              >
+                                ✨
+                              </motion.span>
+                            </motion.div>
+                          </motion.div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm font-semibold opacity-90 line-through">
+                            ${program.price + 20}/month
+                          </div>
+                          <div className="text-2xl font-bold">
+                            ${program.price}
+                            <span className="text-sm">/month</span>
+                          </div>
+                          <div className="text-xs mt-1 font-medium">
+                            Limited Time Offer!
+                          </div>
+                        </div>
                       </div>
-                      <div className="absolute left-1/2 display-1 flex flex-row transform -translate-x-1/2 -top-16 px-1 py-2 rounded-2xl text-3xl bg-color1 font-bold w-fit text-white">
-                        <span className="flex flex-col  items-center ">
-                        <span className="line-through text-blue-900 font-poppins text-center flex items-center ">${parseInt(program.price) + 20}</span>
-                        <span className="text-lg font-bold display-1 ml-2 flex flex-row">${program.price} <span className="text-lg font-bold display-1 flex items-end">/Month</span></span>
-                        </span>
-                      </div>
-                    </div>
-                    <div className="bg-white p-4 h-28 overflow-hidden">
-                      <a href="#" className="text-xl sm:text-2xl font-bold display-1 text-secondary">
+                    </motion.div>
+                  </div>
 
+                  <div className="p-6 bg-gradient-to-b from-white/90 to-orange-50/90 backdrop-blur-sm flex-grow flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold bg-gradient-to-r from-orange-700 to-pink-600 bg-clip-text text-transparent mb-3">
                         {en ? program.title : program.title_am}
-                      </a>
-                      <p className="mt-3 mb-0 overflow-hidden font-semibold">
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed">
                         {en
-                          ? program.description.substring(0, 70)
-                          : program.description_am.substring(0, 70)}
-                        ...
+                          ? program.description.substring(0, 160)
+                          : program.description_am.substring(0, 120)}...
                       </p>
                     </div>
-                    <div className="flex items-center border-t border-orange-500 bg-white p-4 justify-between">
-                      <div className="ml-1 gap-2 flex flex-row items-center">
+                    
+                    <div className="mt-6 flex gap-3 items-center justify-between">
+                      <div className="flex items-center space-x-3">
                         <img
                           src={`${import.meta.env.VITE_IMG_URL}/${program.img_url}`}
                           alt="Teacher"
-                          className="rounded-full p-2 border border-orange-500 w-12 h-12 sm:w-16 sm:h-16"
+                          className="w-12 h-12 rounded-full border-4 border-pink-300 hover:border-pink-400 transition-colors duration-300"
                         />
-                        <h6 className="mb-0 text-lg text-color1">
+                        <span className="font-medium text-orange-600">
                           {en ? program.teachers : program.teacher_am}
-                        </h6>
+                        </span>
                       </div>
-                      <div>
-                        <Link
-                          to="/details"
-                          state={{
-                            items: program,
-                          }}
-                          className="inline-block bg-secondary font-bold btn2 text-white px-4 sm:px-6 py-2 sm:py-3 text-md sm:text-xl rounded"
-                          onClick={() => window.scrollTo(0, 0)}
-                        >
-                          Enroll
-                        </Link>
-                      </div>
-                    </div>
-                    <div className="flex justify-between px-4 items-center py-2 bg-color1 text-white rounded-b-lg">
-                      <div>{program.start_date}</div>
-                      <div>{program.end_date}</div>
+                      <Link
+                        to="/details"
+                        state={{ items: program }}
+                        className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 hover:from-orange-600 hover:to-pink-600"
+                        onClick={() => window.scrollTo(0, 0)}
+                      >
+                        Enroll
+                      </Link>
                     </div>
                   </div>
                 </div>
-              ))}
-        
+              </motion.div>
+            ))}
           </div>
+
+          {isHome ? (
+            <div className="w-full text-center mt-8">
+              <Link
+                to="/programs"
+                className="inline-block bg-color1 hover:bg-secondary btn2 text-white px-5 py-3 rounded transform scale-100 hover:scale-110 transition duration-300"
+              >
+                {en ? "View All Programs" : "ሁሉንም ፕሮግራሞች ይመልከቱ"}
+              </Link>
+            </div>
+          ) : (
+            <div className="flex justify-center mt-12 gap-2">
+              {Array.from({ length: totalPages }, (_, i) => (
+                <motion.button
+                  key={i + 1}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => paginate(i + 1)}
+                  className={`px-4 py-2 rounded-lg font-bold transition-all duration-300 ${
+                    currentPage === i + 1
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-white text-orange-500 hover:bg-orange-100'
+                  }`}
+                >
+                  {i + 1}
+                </motion.button>
+              ))}
+            </div>
+          )}
         </div>
-      </div>      
-     
-</>
+      </div>
+    </>
   );
 };
 

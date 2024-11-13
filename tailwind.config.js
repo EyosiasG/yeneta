@@ -11,8 +11,8 @@ module.exports = {
       },
       colors:{
        Green:"#071809",
-       color1 :"#00afaf",
-       secondary: "#FF5733",
+       color1 :"#FF7F00",
+       secondary: "#F28100",
       },
       screens: {
         'xx': '425px',

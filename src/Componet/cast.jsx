@@ -1,56 +1,84 @@
-
 import Hero1 from '../assets/img/hero7.webp'
 import React, { useEffect, useRef, useState } from 'react';
 import useStore from '../store/store';
 import PopOutPlayer from './PopOutPlayer';
 import bg from '../assets/img/abvid.webp'
+import { motion } from 'framer-motion';
 
 const Cast = () => {
-
   const en = useStore((state) => state.en);
 
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
 
+  const sections = [
+    {
+      title: "Early Life & Cultural Roots",
+      content: "Born in the vibrant city of Addis Ababa, Ethiopia, Rakeb grew up immersed in the rich tapestry of Ethiopian traditions, music, and languages. Her childhood was marked by the melodious sounds of traditional instruments and the warmth of community gatherings, which would later inspire her life's mission. After completing her early education in Ethiopia, she pursued an unconventional path that combined her passion for culture with formal academic achievements. Her academic journey includes specialized training in Marketing Management, an innovative degree in Management Information Systems, and expertise in Medical Technology - a unique combination that reflects her multifaceted approach to education and community building."
+    },
+    {
+      title: "The Birth of a Vision",
+      content: "While working in the healthcare sector, Rakeb noticed a growing disconnect between young Ethiopian-Americans and their cultural heritage. This observation sparked a transformative idea: creating a space where children could experience the magic of Ethiopian culture through interactive learning. This led to the establishment of Yeneta Language and Cultural Academy in Silver Spring, Maryland - not just as a school, but as a cultural sanctuary where young minds aged 4-14 can explore their roots through language, music, and traditions."
+    },
+    {
+      title: "Innovative Teaching Philosophy",
+      content: "Rakeb's teaching methodology is revolutionary in its approach. She has developed a unique curriculum that weaves together language instruction, musical training, and cultural storytelling. Her students don't just learn Amharic or Tigrinya; they experience it through traditional songs, interactive plays, and cultural festivals. The academy's signature program includes hands-on experience with traditional Ethiopian instruments, making it one of the few institutions in America offering such comprehensive cultural education."
+    },
+    {
+      title: "Community Impact & Leadership",
+      content: "Beyond the classroom, Rakeb has emerged as a cultural ambassador, bridging generational and cultural gaps within the Ethiopian-American community. She organizes cultural showcases, parent-child workshops, and community events that bring together families to celebrate their heritage. Her work has created a ripple effect, inspiring other communities to establish similar cultural education programs. Through her leadership, she has built a network of cultural educators and mentors who share her vision of preserving Ethiopian heritage in the diaspora."
+    },
+    {
+      title: "Future Aspirations",
+      content: "Looking ahead, Rakeb envisions expanding the academy's impact through digital learning platforms and satellite campuses. She is developing an innovative online curriculum that will make Ethiopian cultural education accessible to families worldwide. Her ultimate goal is to create a global network of cultural learning centers that preserve and celebrate Ethiopian heritage while adapting to modern educational needs. Through these initiatives, she continues to build bridges between generations and cultures, ensuring that Ethiopian traditions remain vibrant and relevant in the 21st century."
+    }
+  ];
 
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+    >
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-20"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url(${bg})`,
+          backgroundAttachment: 'fixed',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.h1 
+            className="text-6xl font-bold text-center text-yellow-500 mb-20 font-serif"
+            {...fadeIn}
+          >
+            A Journey of Cultural Preservation
+          </motion.h1>
 
-
-
-
-return (
-    <>
-
-
-<div className="container-fluid py-5 flex justify-center items-center bg-white"style={{ backgroundImage: `linear-gradient(rgba(255,255, 255, 0.8), rgba(255, 255, 255, 0.7)), url(${bg})`}} >
-  <div className="container py-5">
-    <div className="row g-5">
-      
-      <div className="col-lg-8 col-md-10 mx-auto text-black px-8 rounded-md shadow-xl my-10 py-10  bg-white border ">
-      <h1 className='text-center display-1 text-color1 text-4xl  underline pb-4 '>Biography</h1>
-        <h1 className="mb-4 text-4xl text-yellow-600 display-1 font-semibold">Background and Education</h1>
-        <p className="text-lg mb-4">
-          Rakeb was born and raised in Ethiopia, a land celebrated for its profound cultural heritage and storied history. With an unwavering dedication, she pursued an education that bridges both business and healthcare domains. Rakeb holds an associate degree in Marketing Management, a Bachelor of Science in Management Information Systems, and a degree in Medical Technology. This diverse educational background has equipped her with an expansive skill set, enabling her to excel in a multitude of fields. Her expertise in marketing management empowers her to understand and effectively engage diverse audiences. Her knowledge in management information systems provides a robust foundation in technology and data management. Additionally, her background as a medical technologist offers her a comprehensive understanding of healthcare practices and standards. As the founder of Yeneta Language and Cultural Academy in Silver Spring, Maryland, Rakeb primarily educates children aged 4-14 on Ethiopian languages, cultures, and traditional musical instruments.
-        </p>
-        <h2 className="mb-4 text-3xl text-yellow-600 display-1 font-semibold">Passion for Culture and Education</h2>
-        <p className="text-lg mb-4">
-          Rakeb is profoundly passionate about her Ethiopian heritage and is fervently committed to helping children connect with their cultural roots. She believes that understanding and appreciating one’s language and traditions is essential for personal and community identity. This deep-seated passion has propelled her to establish language and culture schools aimed at engaging children and instilling a profound sense of pride in their cultural heritage.
-        </p>
-        <h2 className="mb-4 text-3xl text-yellow-600 display-1 font-semibold">Vision for the Future</h2>
-        <p className="text-lg mb-4">
-          Rakeb envisions a dynamic network of schools dedicated to teaching Ethiopian languages and cultural traditions. These institutions will serve as vibrant centers for cultural exchange, equipping children with the knowledge and skills to honor and celebrate their heritage. Through the establishment of these schools, Rakeb aims to fortify her community and ensure that future generations remain deeply connected to their cultural origins.
-        </p>
-        <h2 className="mb-4 text-3xl text-yellow-600 display-1 font-semibold">Community Involvement and Philosophy</h2>
-        <p className="text-lg mb-4">
-          Rakeb is a staunch believer in the transformative power of education and cultural awareness. She is actively engaged in community initiatives that champion cultural education and engagement. Her personal philosophy is that by helping children understand and embrace their heritage, she can contribute to building a stronger, more cohesive community.
-        </p>
-        <h2 className="mb-4 text-3xl text-yellow-600 display-1 font-semibold">Conclusion</h2>
-        <p className='text-lg'>
-          Rakeb's journey from Ethiopia to a multifaceted professional career epitomizes her steadfast commitment to education, cultural preservation, and community service. Her vision of establishing language and culture schools underscores her dedication to nurturing a sense of belonging and identity among young Ethiopians. Rakeb's story is a compelling testament to how education and cultural pride can profoundly shape individuals and communities for the better.
-        </p>
+          <div className="space-y-16 ">
+            {sections.map((section, index) => (
+              <motion.div
+                key={index}
+                className="bg-white/75 backdrop-blur-sm rounded-2xl shadow-2xl p-10 hover:shadow-yellow-200/20 transition-all duration-500"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: index * 0.2 }}
+              >
+                <h2 className="text-4xl font-semibold text-secondary mb-8 border-b-4 border-yellow-100 pb-4 font-serif">
+                  {section.title}
+                </h2>
+                <p className="text-gray-800 leading-loose text-xl font-light">
+                  {section.content}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-     
-</>
+    </motion.div>
   );
 };
 

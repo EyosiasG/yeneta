@@ -1,166 +1,253 @@
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import useStore from "../store/store";
+import Hero from "./hero";
 
-import Hero1 from '../assets/img/hero7.webp'
-import React, { useEffect, useRef, useState } from 'react';
-import useStore from '../store/store';
-import { toast } from 'react-toastify';
-
-const Events = () => {
-
-  
+const Events = ({ isHome = false }) => {
   const en = useStore((state) => state.en);
-  const { setAbout_link,setAboutImgUrl, setAboutDescriptionAm,setAboutDescription, setAboutus, setProgram, setEvent, setBlog, setStaff, setTestimonials ,about, program, event, blog, staff, testimonials ,about_link,about_description,about_description_am,about_imgurl } = useStore();
-  const {  setA_Ceo, setA_Why, setA_Aboutus, setA_Service, setA_Program, setA_Blog, setA_Event ,a_Contactus,setA_Contactus, setA_Staff, setA_Gallery, setA_Testimonials, a_Why, a_Ceo, a_Aboutus,a_Event,  a_Service, a_Program, a_Blog, a_Staff, a_Gallery, a_Testimonials } = useStore();
-  
+  const [isLoading, setIsLoading] = useState(true);
+  const { setEvent, setA_Event, a_Event } = useStore();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API}/api/Events`);
+        if (!response.ok) throw new Error("Failed to fetch events");
+        const data = await response.json();
+        if (data.status === 1) setA_Event(data.data);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
+    fetchEvents();
+  }, []);
 
-
-
-
-useEffect(() => {
-  
-
-  async function events() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/Events`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-
-    const data = await response.json();
-    if (data.status === 1) {
-      setA_Event(data.data);
-
-    } else {
-      return;
-    }
-  }
-  events();
-}, []);
-
-useEffect(() => {
-
-  async function fetchData() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/mainTitle`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    
-    const data1 = await response.json();
-    
-    if (data1.status === 1) {
-    
-      data1.data.forEach((item) => {
-        switch (item.name) {
-          case 'Event':
-            setEvent(item);
-            break;
-      
-          default:
-            console.log('Unknown section:', item.name);
+  useEffect(() => {
+    const fetchMainTitle = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API}/api/mainTitle`);
+        if (!response.ok) throw new Error("Failed to fetch main title");
+        const { status, data } = await response.json();
+        
+        if (status === 1) {
+          data.forEach(item => {
+            if (item.name === "Event") setEvent(item);
+          });
         }
-      });
-    }
-    else {
-     return;
-   }
-    }
+      } catch (error) {
+        console.error("Error fetching main title:", error);
+      }
+    };
 
-  
-    fetchData();
+    fetchMainTitle();
   }, [setEvent]);
 
+  const nextSlide = () => {
+    if (!a_Event.length) return;
+    setCurrentIndex((prevIndex) => 
+      prevIndex === a_Event.length - 1 ? 0 : prevIndex + 1
+    );
+  };
 
+  const prevSlide = () => {
+    if (!a_Event.length) return;
+    setCurrentIndex((prevIndex) => 
+      prevIndex === 0 ? a_Event.length - 1 : prevIndex - 1
+    );
+  };
 
-return (
-    <>
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
 
-<div      className="container-fluid py-5  max-h-[16rem] sm:max-h-[26rem] md:max-h-[56rem] min-h-fit bg-contain bg-center hero-header flex justify-center items-center" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(55, 55, 55, 0.2)), url(${Hero1})` }}>
-      <div className="container py-5 ">
-        <div className="row g-5 flex ">
-          <div className="col-lg-7 col-md-12 ">
-            {en ?(
-              
-            <h1 className="mb-5  lg:text-8xl text-6xl md:text-7xl sm:text-6xl  text-white text-center display-1 family-poppins font-black">Events</h1>
-            ):(
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
 
-              <h1 className="mb-5  lg:text-8xl text-6xl md:text-7xl sm:text-7xl  text-white display-1 family-poppins font-black">ክስተቶች</h1>
-            )}
-            
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 75) {
+      nextSlide();
+    }
+
+    if (touchStart - touchEnd < -75) {
+      prevSlide();
+    }
+  };
+
+  const renderEventCard = (event, index, offset = 0) => (
+    <motion.div
+      key={event.id}
+      className={`w-full max-w-[90vw] sm:max-w-[22rem] md:max-w-[28rem] lg:max-w-lg relative group snap-center rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 mx-auto`}
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ 
+        opacity: 1, 
+        x: offset * (window.innerWidth < 768 ? 100 : 300),
+        scale: 1 - Math.abs(offset) * (window.innerWidth < 768 ? 0.05 : 0.1),
+        zIndex: 10 - Math.abs(offset)
+      }}
+      transition={{ duration: 0.5 }}
+      style={{ 
+        position: 'absolute',
+        left: window.innerWidth < 768 ? '0%' : '30%',
+        transform: `translate(-50%, 0) translateX(${offset * (window.innerWidth < 768 ? 50 : 100)}px)`,
+        filter: `blur(${Math.abs(offset) * 1}px)`,
+        pointerEvents: offset === 0 ? 'auto' : 'none'
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="rounded-2xl overflow-hidden transition-all duration-300">
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+          <div className="bg-gradient-to-r from-color1 via-secondary to-color1 text-white px-8 py-3 rounded-full font-bold shadow-xl animate-pulse">
+            {event.date}
           </div>
         </div>
-      </div>
-    </div>
-    <div className="bg-white">
-        <div className="container flex flex-col justify-center mx-auto py-10 sm:py-20 md:py-24 lg:py-28 xl:py-32">
-        <div className="text-center max-w-2xl mx-auto">
-            <h4 className="mb-4 inline-block p-2 border-b-4 text-2xl sm:text-2xl text-color1 -600 border-color1 -600 rounded-l-3xl rounded-r-md">
-              {en ? "Our Events" :       'የሚቀጥሉ ክስተቶቻችን'}
-            </h4>
-            <h1 className="mb-5 text-[#d4aa3b] text-4xl sm:text-5xl display-1 font-bold">
-              {en ? "Our Upcoming Events" :    'እኛ የምናቀርባቸው ክስተቶች'}
-            </h1>
-          </div>
-          <div className="flex flex-wrap overflow-x-auto snap-x snap-mandatory  max-w-[100vw] justify-center gap-4 md:gap-8 py-16 px-2 ">
-            {a_Event.map((event) => (
-              <div
-                key={event.id}
-                className="bg-white mt-10 w-[20rem] relative shadow-2xl hover:shadow-secondary border-b-[20px] border-color1 rounded-md pb-10 hover:bg-white transform hover:scale-105 hover:-translate-y-1 transition-transform duration-300 snap-center"
-                style={{ flexGrow: 0, flexShrink: 0 }}
-              >
-                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-color1 w-fit text-white px-2 py-1 rounded-xl text-center py-2">
-                    {event.date}
-                  </div>
-                </div>
-                <div className="rounded-lg overflow-hidden">
-                  <div className="">
-                    <img
-                      src={`${import.meta.env.VITE_IMG_URL}/${event.image}`}
-                      alt="Event"
-                      className="w-full object-cover h-[20rem]"
-                    />
-                  </div>
 
-                  <div className="flex justify-between px-4 py-2 bg-color1 text-white">
-                    <small>
-                      <i className="fas fa-calendar-alt mr-1"></i>
-                      {event.time}
-                    </small>
-                    <small>
-                      <i className="fas fa-map-marker-alt mr-1"></i>
-                      {en ? event.location : event.location_am}
-                    </small>
-                  </div>
-                  <div className="p-4 bg-white flex justify-between flex-col h-[20rem] overflow-scroll">
-                    <div>
-                      <a href="#" className="text-lg sm:text-xl md:text-md  font-bold">
-                        {en ? event.title : event.title_am}
-                      </a>
-                      <p className="mt-3 mb-0 text-base sm:text-md">
-                        {en ? event.description : event.description_am}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+        <div className="relative overflow-hidden">
+          <img
+            src={`${import.meta.env.VITE_IMG_URL}/${event.image}`}
+            alt="Event"
+            className="w-full object-cover h-[16rem] sm:h-[20rem] md:h-[24rem]"
+          />
+          <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent text-white p-6 backdrop-blur-sm">
+            <span className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <i className="fas fa-calendar-alt text-secondary animate-pulse"></i>
+                <span className="font-medium">{event.time}</span>
               </div>
-            ))}
+              <div className="flex items-center space-x-2">
+                <i className="fas fa-map-marker-alt text-secondary animate-pulse"></i>
+                <span className="font-medium ">{en ? event.location : event.location_am}</span>
+              </div>
+            </span>
+          </div>
+        </div>
+
+        <div className="p-8 bg-white">
+          <h3 className="text-2xl font-bold text-color1 hover:text-secondary transition-colors duration-300 mb-4 cursor-pointer">
+            {en ? event.title : event.title_am}
+          </h3>
+          <div className="h-64 overflow-auto custom-scrollbar pr-4">
+            <p className="text-gray-700 leading-relaxed text-lg">
+              {en ? event.description : event.description_am}
+            </p>
           </div>
         </div>
       </div>
-     
-</>
+    </motion.div>
+  );
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <motion.div
+          className="w-full flex justify-center items-center min-h-[500px]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="flex flex-col items-center space-y-6">
+            <div className="w-20 h-20 border-4 border-color1 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-xl text-color1 font-semibold">Loading amazing events...</p>
+          </div>
+        </motion.div>
+      );
+    }
+
+    if (!a_Event.length) {
+      return (
+        <motion.div
+          className="flex flex-col w-full justify-center items-center py-16 h-[40vh] bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="animate-bounce mb-6">
+            <i className="fas fa-calendar-times text-7xl text-color1"></i>
+          </div>
+          <p className="text-3xl text-color1 font-bold display-1">No events scheduled yet</p>
+          <p className="text-gray-600 mt-4">Check back soon for upcoming events!</p>
+        </motion.div>
+      );
+    }
+
+    return (
+      <div className="relative w-full flex justify-center items-center min-h-[700px] sm:min-h-[800px] md:min-h-[900px]">
+        {window.innerWidth < 768 
+          ? [-1, 0, 1].map((offset) => {
+              const index = (currentIndex + offset + a_Event.length) % a_Event.length;
+              return renderEventCard(a_Event[index], index, offset);
+            })
+          : [-2, -1, 0, 1, 2].map((offset) => {
+              const index = (currentIndex + offset + a_Event.length) % a_Event.length;
+              return renderEventCard(a_Event[index], index, offset);
+            })
+        }
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {!isHome && <Hero eng="Events" amh="ክስተቶች"/>}
+
+      <section className="bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden">
+        <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16 lg:py-24 relative z-10">
+          <motion.div
+            className="absolute inset-0 opacity-75"
+            animate={{
+              backgroundPosition: ["0% 0%", "100% 100%"],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          />
+
+          <motion.div
+            className="text-center max-w-3xl mx-auto mb-8 sm:mb-16"
+          >
+            <h4    className="inline-block px-8 py-3 bg-color1/10 text-color1 rounded-full text-xl font-bold mb-6">
+              {en ? "Our Events" : "የሚቀጥሉ ክስተቶቻችን"}
+            </h4>
+            <h1 className="text-secondary text-3xl sm:text-5xl lg:text-6xl display-1 font-bold mb-4 sm:mb-6">
+              {en ? "Our Upcoming Events" : "እኛ የምናቀርባቸው ክስተቶች"}
+            </h1>
+          </motion.div>
+
+          <div className="relative flex justify-center items-center">
+            <button 
+              onClick={prevSlide}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white p-3 rounded-full shadow-xl transition-all duration-300"
+            >
+              <i className="fas fa-chevron-left text-2xl text-color1"></i>
+            </button>
+            
+            <button 
+              onClick={nextSlide}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white p-3 rounded-full shadow-xl transition-all duration-300"
+            >
+              <i className="fas fa-chevron-right text-2xl text-color1"></i>
+            </button>
+
+            <div className="w-full flex justify-center items-center py-4 sm:py-8 px-2 sm:px-4">
+              <AnimatePresence mode="wait">
+                {renderContent()}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 };
 

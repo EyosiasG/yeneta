@@ -1,221 +1,205 @@
-
-import Hero1 from '../assets/img/hero7.png'
-import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Hero1 from '../assets/img/hero7.png';
+import React, { useEffect, useState } from 'react';
 import useStore from '../store/store';
 import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import Hero from './hero';
 
-const Testimonial = () => {
-  const setService = useStore((state) => state.setService);
-  const service = useStore((state) => state.service);
-  const setGallery = useStore((state) => state.setGallery);
-  const gallery = useStore((state) => state.gallery);
-  const [isHovering, setIsHovering] = useState(false);  // State to track hover
-  const en = useStore((state) => state.en);
+const Testimonial = ({ isHome = false }) => {
+  const {
+    en,
+    setService,
+    service,
+    setGallery,
+    gallery,
+    testimonials,
+    setTestimonials,
+    a_Testimonials,
+    setA_Testimonials,
+    setAboutus,
+    setProgram,
+    setEvent,
+    setBlog,
+    setStaff
+  } = useStore();
 
-  const setDrive_i = useStore((state) => state.setDrive_i);
-  const drive_i = useStore((state) => state.drive_i);
-  const { setAbout_link,setAboutImgUrl, setAboutDescriptionAm,setAboutDescription, setAboutus, setProgram, setEvent, setBlog, setStaff, setTestimonials ,about, program, event, blog, staff, testimonials ,about_link,about_description,about_description_am,about_imgurl } = useStore();
-  const {  setA_Ceo, setA_Why, setA_Aboutus, setA_Service, setA_Program, setA_Blog, setA_Event ,a_Contactus,setA_Contactus, setA_Staff, setA_Gallery, setA_Testimonials, a_Why, a_Ceo, a_Aboutus,a_Event,  a_Service, a_Program, a_Blog, a_Staff, a_Gallery, a_Testimonials } = useStore();
-  
-  const settings = {
+  const [isHovering, setIsHovering] = useState(false);
+
+  const sliderSettings = {
     dots: true,
     infinite: true,
-    speed: 500,
-    slidesToShow: 1,
+    speed: 800,
+    slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 2000,
-  };
-
-
-
-useEffect(() => {
-
-  
-  async function Testimonials() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/Testimonial`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-
-    const data = await response.json();
-    if (data.status === 1) {
-      setA_Testimonials(data.data);
-
-    } else {
-      return;
-    }
-  }
-  Testimonials();
-}, []);
-useEffect(() => {
-
-  async function fetchData() {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/mainTitle`;
-
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    
-    const data1 = await response.json();
-    
-    if (data1.status === 1) {
-    
-      data1.data.forEach((item) => {
-        switch (item.name) {
-          case 'Aboutus':
-            setAboutus(item);
-            break;
-          case 'Service':
-            setService(item);
-            break;
-          case 'Program':
-            setProgram(item);
-            break;
-          case 'Event':
-            setEvent(item);
-            break;
-          case 'Blog':
-            setBlog(item);
-            break;
-          case 'Staff':
-            setStaff(item);
-            break;
-          case 'Testimonials':
-            setTestimonials(item);
-            break;
-          case 'Gallery':
-            setGallery(item);
-            break;
-          default:
-            console.log('Unknown section:', item.name);
+    autoplaySpeed: 3000,
+    pauseOnHover: true,
+    cssEase: "cubic-bezier(0.87, 0.03, 0.41, 0.9)",
+    responsive: [
+      {
+        breakpoint: 1668,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 1,
         }
-      });
-    }
-    else {
-     return;
-   }
-    }
-
-  
-    fetchData();
-  }, [setAboutus, setService, setProgram, setEvent, setBlog, setStaff, setTestimonials, setGallery]);
-
-
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const itemsPerPage = 3; // Number of testimonials per slide
-  const autoRotateTime = 5000; // Auto-rotate every 5000 milliseconds (5 seconds)
-
-  const nextSlide = () => {
-    setCurrentSlide((prevSlide) =>
-      prevSlide + itemsPerPage >= a_Testimonials.length ? 0 : prevSlide + itemsPerPage
-    );
+      },
+      {
+        breakpoint: 1122,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+        }
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          dots: false,
+        }
+      }
+    ]
   };
 
   useEffect(() => {
-    if (!isHovering) {  // Only set the interval if not hovering
-      const slideInterval = setInterval(nextSlide, autoRotateTime);
-      return () => clearInterval(slideInterval);
-    }
-  }, [currentSlide, itemsPerPage, a_Testimonials.length, isHovering]); 
-  
+    const fetchTestimonials = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API}/api/Testimonial`);
+        if (!response.ok) throw new Error('Failed to fetch testimonials');
+        const data = await response.json();
+        if (data.status === 1) {
+          setA_Testimonials(data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching testimonials:', error);
+      }
+    };
+
+    const fetchMainTitles = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API}/api/mainTitle`);
+        if (!response.ok) throw new Error('Failed to fetch main titles');
+        const data = await response.json();
+        
+        if (data.status === 1) {
+          const titleSetters = {
+            Aboutus: setAboutus,
+            Service: setService,
+            Program: setProgram,
+            Event: setEvent,
+            Blog: setBlog,
+            Staff: setStaff,
+            Testimonials: setTestimonials,
+            Gallery: setGallery
+          };
+
+          data.data.forEach(item => {
+            if (titleSetters[item.name]) {
+              titleSetters[item.name](item);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching main titles:', error);
+      }
+    };
+
+    fetchTestimonials();
+    fetchMainTitles();
+  }, []);
+
   return (
-<>
-<div  className="container-fluid py-5  max-h-[16rem] sm:max-h-[26rem] md:max-h-[56rem] min-h-fit bg-contain bg-center hero-header flex justify-center items-center" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(55, 55, 55, 0.2)), url(${Hero1})` }}>
-      <div className="container py-5 ">
-        <div className="row g-5 flex ">
-          <div className="col-lg-7 col-md-12 ">
-            {en ?(
-              
-            <h1 className="mb-5  lg:text-8xl text-6xl md:text-7xl sm:text-6xl  text-white text-center display-1 family-poppins font-black">Testimonial</h1>
-            ):(
+    <>
 
-              <h1 className="mb-5  lg:text-8xl text-6xl md:text-7xl sm:text-7xl  text-white display-1 family-poppins font-black">ምስክርነት</h1>
-            )}
-            
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div 
-    className="container mx-auto py-20 h-fit"
-    onMouseEnter={() => setIsHovering(true)}  // Set isHovering to true when mouse enters
-    onMouseLeave={() => setIsHovering(false)} // Set isHovering to false when mouse leaves
-  >
-    <div className="text-center mx-auto px-4">
-      <h4 className="mb-4 inline-block p-2 border-b-4 text-xl md:text-2xl text-color1 -600 border-color1 -600 rounded-l-3xl rounded-r-md">
-        {en ? "Our Testimonials": testimonials.title_am}
-      </h4>
-      <h1 className="mb-5 text-[#d4aa3b] text-3xl md:text-4xl lg:text-6xl font-bold">
-        {en ? "Parents Say About Us" : testimonials.subTitle_am}
-      </h1>
-    </div>
-    <div className="flex flex-wrap justify-center items-center h-3/4">
-      <Slider
-       {...settings}
-       slidesToShow={
-         window.innerWidth > 1668
-           ? 3
-           : window.innerWidth > 1122
-           ? 2
-           : window.innerWidth > 470
-           ? 
-           1
-           :1
-       }
-        infinite={true}
-        className='flex justify-center w-full'
-      >
-        {a_Testimonials.map((testimonial, index) => (
-          <div key={testimonial.id} className="p-4 w-full flex justify-center">
-            <div className="bg-primary-500 border card1 bg-white max-h-[16rem] border border-dashed border-secondary p-4 rounded-lg w-full">
-              <div className="relative p-4">
-                <i className="fa fa-quote-right text-2xl absolute top-4 right-4 text-color1-600"></i>
-                <div className="flex items-center">
-                  <div className="border-4 border-red-500 rounded-full w-20 h-20">
-                    <img
-                      src={`${import.meta.env.VITE_IMG_URL}/${testimonial.image}`}
-                      alt=""
-                      className="rounded-full pb-2 border border-dashed border-orange-500"
-                      style={{ width: "80px", height: "80px" }}
+      {!isHome && <Hero eng="Testimonials" amh="ምስክርነት"/>}
+      <div className="container mx-auto py-24 px-4 ">
+        <motion.div 
+          initial={{ y: 50, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
+        >
+          <motion.span 
+            className="inline-block px-8 py-3 bg-color1/10 text-color1 rounded-full text-xl font-medium mb-6"
+            whileHover={{ scale: 1.05 }}
+          >
+            {en ? "Our Testimonials" : testimonials.title_am}
+          </motion.span>
+          <motion.h2 
+            className="text-5xl md:text-6xl font-bold text-secondary display-1"
+            whileHover={{ scale: 1.02 }}
+          >
+            {en ? "What Parents Say About Us" : testimonials.subTitle_am}
+          </motion.h2>
+        </motion.div>
+
+        <motion.div 
+          className="max-w-7xl mx-auto"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          <Slider {...sliderSettings}>
+            {a_Testimonials.map((testimonial, index) => (
+              <motion.div 
+                key={testimonial.id}
+                className="px-4 py-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <motion.div 
+                  className="bg-white rounded-3xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="flex items-center gap-6 mb-8">
+                    <motion.div 
+                      className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-color1"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                    >
+                      <img
+                        src={`${import.meta.env.VITE_IMG_URL}/${testimonial.image}`}
+                        alt={testimonial.author}
+                        className="w-full h-full object-cover"
+                      />
+                    </motion.div>
+                    <div>
+                      <h4 className="text-2xl font-bold text-secondary mb-2">{testimonial.author}</h4>
+                      <div className="flex gap-1">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <motion.i 
+                            key={i} 
+                            className="fas fa-star text-yellow-400"
+                            initial={{ rotate: 0 }}
+                            whileHover={{ rotate: 360, scale: 1.2 }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <motion.i 
+                      className="fas fa-quote-right text-5xl text-color1/20 ml-auto"
+                      whileHover={{ scale: 1.2, rotate: 15 }}
                     />
                   </div>
-                  <div className="ml-4">
-                    <h4 className="text-secondary">{testimonial.author}</h4>
-                    <div className="flex mt-2">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <i key={i} className="fas fa-star text-color1-600"></i>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <p className="border-t border-orange-500 mt-4 pt-3 text-gray-600">
-                  {testimonial.professional}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </Slider>
-    </div>
-  
-  </div>
-
-
-</>
-      );
+                  <p className="text-gray-600 leading-relaxed text-lg italic">
+                    {testimonial.professional}
+                  </p>
+                </motion.div>
+              </motion.div>
+            ))}
+          </Slider>
+        </motion.div>
+      </div>
+    </>
+  );
 };
 
 export default Testimonial;

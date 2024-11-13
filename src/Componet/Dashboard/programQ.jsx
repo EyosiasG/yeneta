@@ -3,14 +3,51 @@ import axios from 'axios';
 import useStore from '../../store/store';
 import { useForm } from 'react-hook-form';
 import Hero1 from '../../assets/img/hero7.png'
-import { faCoffee } from '@fortawesome/free-solid-svg-icons';
-import { faPenToSquare} from '@fortawesome/free-solid-svg-icons';
+import { faCoffee, faPenToSquare, faPlus, faTrash, faClock } from '@fortawesome/free-solid-svg-icons';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Swal from 'sweetalert2';
+import { motion, AnimatePresence } from 'framer-motion';
 
 library.add(fas);
+
+// Add these animation variants
+const tableVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: "easeOut"
+    }
+  }
+};
+
+const modalVariants = {
+  hidden: { 
+    opacity: 0, 
+    scale: 0.8 
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.8,
+    transition: {
+      duration: 0.3,
+      ease: "easeIn"
+    }
+  }
+};
+
 const Programs = () => {
     const [showForm, setShowForm] = useState(false);
     const [showForm1, setShowForm1] = useState(false);
@@ -350,215 +387,200 @@ const onSubmit = async (data) => {
 
 
   return (
-    <div className='pt-10'>
-            <h1 className='text-center text-5xl text-color1 -700 display-1'>Programs</h1>
-
-           
-      <div className='w-full flex flex-row justify-between px-4 mb-4'>
-        
-      <div className="mb-4 mx-10">
-  <label htmlFor="searchStudentId" className="block text-sm font-medium text-gray-700">Search by Program</label>
-  <div className="mt-1 relative rounded-md flex-row gap-4 shadow-sm">
-    <input
-      type="text"
-      name="searchStudentId"
-      id="searchStudentId"
-      className="focus:ring-indigo-500 focus:border-indigo-500 block  pl-7 h-11 w-72 pr-12 sm:text-sm border border-gray-400 rounded-md"
-      placeholder="Enter Program"
-      onChange={async (e) => {
-        const studentId = e.target.value;
-        if (studentId.trim() !== '') {
-          try {
-            const response = await fetch(`${import.meta.env.VITE_API}/api/programs/${studentId}`, { 
-              method: 'GET',
-            });
-            if (!response.ok) {
-              throw new Error("Failed to fetch data");
-            }
-            const data = await response.json();
-            if (data.status === 1) {
-              setA_Program(data.data); // Assuming the API returns a single student object
-            } else {
-              setA_Program([]); // Clear the list if no student is found or in case of other statuses
-            }
-          } catch (error) {
-            console.error('Error fetching student by ID:', error);
-          }
-        } else {
-          fetchPrograms(); // Reset to original list if input is cleared
-        }
-      }}
-  
-  />
-  
-  </div>
-  
-</div>
-    
-      <button onClick={() => { setEditingProgram(null); toggleForm(!showForm); }} className='display-1 text-white font-semibold h-12 bg-color1 -600  rounded-lg px-3 py-2'>Add New Program</button>
-     
-
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-gray-50 p-6"
+    >
+      {/* Header Section */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Program Management</h1>
+        <p className="text-gray-600">Manage and organize your educational programs</p>
       </div>
-  <div className='rounded-lg shadow-2xl shadow-color1 -900/70 bg-white flex justify-center p-1 mx-5 min-h-[80vh] '>
-  <div className='overflow-x-auto '>
-  <div className="overflow-x-auto relative w-full shadow-md sm:rounded-lg ">
-  <table className=" text-sm text-left text-gray-500 dark:text-gray-400 divide-y divide-color1  w-[77vw]">
-    <thead className="text-xs text-gray-600 uppercase bg-gray-300  ">
-      <tr>
-        <th scope="col" className="px-6 py-3">No</th>
-        <th scope="col" className="px-6 py-3">Program</th>
-        <th scope="col" className="px-6 py-3">Price</th>
-        <th scope="col" className="px-6 py-3">Description</th>
-        <th scope="col" className="px-6 py-3">Description (Amharic)</th>
-        <th scope="col" className="px-6 py-3">Teacher</th>
-        <th scope="col" className="px-6 py-3">Teacher (Amharic)</th>
-        <th scope="col" className="px-6 py-3">Priority</th>
-        <th scope="col" className="px-6 py-3">Start Date</th>
-        <th scope="col" className="px-6 py-3">End Date</th>
 
-       
-        <th scope="col" className="px-6 py-3">Actions</th>
-      </tr>
-    </thead>
-    <tbody className="bg-white divide-y divide-gray-200">
-      {a_Program.map((program, index) => (
-        <tr key={program.id}>
-          <td className="px-6 py-4 whitespace-nowrap truncate max-w-[100px] font-bold">{index + 1 + offset}</td>
-          <td className="px-6 py-4 whitespace-nowrap">{en ? program.title : program.title_am}</td>
-          <td className="px-6 py-4 whitespace-nowrap">{program.price}</td>
-          <td className="px-6 py-4 truncate max-w-[200px]">{program.description}</td>
-          <td className="px-6 py-4 truncate max-w-[200px]">{program.description_am}</td>
-          <td className="px-6 py-4 whitespace-nowrap">{program.teachers}</td>
-          <td className="px-6 py-4 whitespace-nowrap">{program.teacher_am}</td>
-          <td className="px-6 py-4 whitespace-nowrap w-96 ">{program.Course}</td>
-          <td className="px-6 py-4 whitespace-nowrap">{program.start_date}</td>
-          <td className="px-6 py-4 whitespace-nowrap">{program.end_date}</td>
-          {/*<td className="px-6 py-4 whitespace-nowrap">{program.P1}</td> */} 
-
-          <td className="px-6 py-4 whitespace-nowrap">
-            <div className="flex justify-end flex-col gap-3 space-x-2">
-            <button onClick={() => {  toggleForm1(true); getSchedule(program.id); }} className="text-green-500 hover:text-green-600 border border-green-700 px-2 py-1 rounded-lg">
-                <FontAwesomeIcon icon={faPenToSquare} />TimeSlot
-              </button>
-
-              <button onClick={() => { setEditingProgram(program); toggleForm(true); }} className="text-blue-500 hover:text-blue-600 px-4 py-2 border border-blue-600 rounded-md">
-                <FontAwesomeIcon icon={faPenToSquare} />
-              </button>
-              <button onClick={() => { if (window.confirm('Are you sure you want to delete this program?')) handleDelete(program.id); }} className="text-red-500 hover:text-red-600 px-6 py-2 border rounded-md border-red-600">
-                <FontAwesomeIcon icon="fa-solid fa-trash" />
-              </button>
+      {/* Search and Add Section */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Search Input */}
+          <div className="flex-1 max-w-md">
+            <label className="text-sm font-medium text-gray-700 mb-1 block">
+              Search Programs
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Search by program name..."
+                onChange={async (e) => {
+                  const searchTerm = e.target.value;
+                  if (searchTerm.trim() !== '') {
+                    try {
+                      const response = await fetch(`${import.meta.env.VITE_API}/api/programs/${searchTerm}`);
+                      if (!response.ok) throw new Error("Failed to fetch data");
+                      const data = await response.json();
+                      setA_Program(data.status === 1 ? data.data : []);
+                    } catch (error) {
+                      console.error('Error:', error);
+                    }
+                  } else {
+                    fetchPrograms();
+                  }
+                }}
+              />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i className="fas fa-search text-gray-400"></i>
+              </div>
             </div>
-          </td>
-        </tr>
-      ))}
-      {a_Program.length === 0 && (
-        <tr>
-          <td colSpan="11" className="px-6 py-4 text-center text-gray-500">
-            No programs available.
-          </td>
-        </tr>
-      )}
-    </tbody>
-  </table>
-</div>
-<div className='flex justify-end mt-8 mx-10'>
+          </div>
 
-<button onClick={handlePrevious} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' disabled={offset === 0}>Previous</button>
-    <button onClick={handleNext} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' 
-    disabled={offset > length - 10} 
-    >Next</button>
-
-</div>
-</div>
-</div>
-<button onClick={toggleForm}>X</button>
-  {showForm &&(  <div className='bg-black/60 ' style={{ position: 'absolute', top: '0%', left: '0%', width: '100%', height: '100%', overflowY: 'auto',  padding: '20px' }}>
-  <button onClick={toggleForm} className=' text-white text-xl mx-[95%] my-12 z-50 bg-red-600 rounded-full h-10 w-10 '>X</button>
-
-  {showForm && (
-        <ProgramForm onSubmit={onSubmit} initialValues={editingProgram || {}} />
-      )}
-    
-   
-    </div>
-    
-)};
-  {showForm2 &&(  <div className='bg-black/60 ' style={{ position: 'absolute', top: '0%', left: '0%', width: '100%', height: '100%', overflowY: 'auto',  padding: '20px' }}>
-  <button onClick={toggleForm2} className=' text-white text-xl mx-[95%] my-12 z-50 bg-red-600 rounded-full h-10 w-10 '>X</button>
-
-  {showForm2 && (
-        <ProgramForm1 onSubmit1={onSubmit1} initialValues={editingProgram || {}} />
-      )}
-    
-   
-    </div>
-    
-)};
- {showForm1 &&(  <div className='bg-black/60 max-w-screen ' style={{ position: 'absolute', top: '0%', left: '0%', width: '100%', height: '100%', overflowY: 'auto',  padding: '20px' }}>
-  <button onClick={toggleForm1} className=' text-white text-xl mx-[95%] my-12 z-50 bg-red-600 rounded-full h-10 w-10 '>X</button>
-
- 
-        {showForm1 && (
-  <>
-  <div className='flex justify-center items-center min-h-[80vh] '>
-     
-    <div className='w-full max-w-4xl p-8 mx-2 bg-white rounded-lg shadow-lg'>
-      <h1 className='text-2xl font-bold text-center text-gray-800 mb-6'>Class Schedule</h1>
-      <div className="flex flex-row justify-end"><button onClick={() => { setEditingProgram(null); toggleForm2(!showForm2); }} className='display-1 my-2 text-white font-semibold h-12 bg-secondary -600  rounded-lg px-3 py-2'>Add New TimeSlot</button>
-     </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="py-3 px-4 text-left text-gray-600">Day</th>
-              <th className="py-3 px-4 text-left text-gray-600">Start Time</th>
-              <th className="py-3 px-4 text-left text-gray-600">End Time</th>
-              <th className="py-3 px-4 text-left text-gray-600">Level</th>
-              <th className="py-3 px-4 text-left text-gray-600">No of sit</th>
-              <th className="py-3 px-4 text-left text-gray-600">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.sort((a, b) => {
-              if (a.level === b.level) {
-                const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-                return daysOfWeek.indexOf(a.Day) - daysOfWeek.indexOf(b.Day);
-              }
-              return a.level - b.level;
-            }).map((item) => (
-              <tr key={item.id} className="border-t">
-                <td className="py-3 px-4">{item.Day}</td>
-                <td className="py-3 px-4">{item.startTime}</td>
-                <td className="py-3 px-4">{item.endTime}</td>
-                <td className="py-3 px-4">{item.level}</td>
-                <td className="py-3 px-4">{item.nosit}</td>
-                <td className="py-3 px-4 flex space-x-2">
-              
-                  <button onClick={() => { setEditingProgram(item); toggleForm2(true); }} className="text-blue-500 hover:text-blue-600 border border-blue-600 px-3 py-1 rounded">
-                    <FontAwesomeIcon icon={faPenToSquare} />
-                  </button>
-                  <button onClick={() => handleDelete1(item.id)} className="text-red-500 hover:text-red-600 border border-red-600 px-3 py-1 rounded">
-                    <FontAwesomeIcon icon="fa-solid fa-trash" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          {/* Add Program Button */}
+          <button
+            onClick={() => { setEditingProgram(null); toggleForm(!showForm); }}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            Add New Program
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
-  </>
-      )}
-   
-    </div>
-    
-)};
-    </div>
+
+      {/* Programs Table */}
+      <motion.div 
+        variants={tableVariants}
+        className="bg-white rounded-xl shadow-sm overflow-hidden"
+      >
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {[
+                  'No', 'Program', 'Price', 'Description', 'Description (አማርኛ)',
+                  'Teacher', 'Teacher (አማርኛ)', 'Priority', 'Start Date', 'End Date', 'Actions'
+                ].map((header) => (
+                  <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {a_Program.map((program, index) => (
+                <motion.tr 
+                  key={program.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="hover:bg-gray-50"
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {index + 1 + offset}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {en ? program.title : program.title_am}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => { toggleForm1(true); getSchedule(program.id); }}
+                        className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-3 py-1 rounded-lg transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faClock} className="mr-1" />
+                        TimeSlot
+                      </button>
+                      <button
+                        onClick={() => { setEditingProgram(program); toggleForm(true); }}
+                        className="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-lg transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faPenToSquare} className="mr-1" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          Swal.fire({
+                            title: 'Are you sure?',
+                            text: "You won't be able to revert this!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, delete it!'
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              handleDelete(program.id);
+                            }
+                          });
+                        }}
+                        className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-lg transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="mr-1" />
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={handlePrevious}
+              disabled={offset === 0}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={offset > length - 10}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Modal Forms */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={modalVariants}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    {editingProgram ? 'Edit Program' : 'Add New Program'}
+                  </h2>
+                  <button
+                    onClick={toggleForm}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <i className="fas fa-times text-xl"></i>
+                  </button>
+                </div>
+                <ProgramForm onSubmit={onSubmit} initialValues={editingProgram || {}} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Similar structure for showForm1 and showForm2 */}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
 export default Programs;
+
 function ProgramForm({ onSubmit, initialValues }) {
 
   const { register, handleSubmit, reset , formState: { errors }  } = useForm({

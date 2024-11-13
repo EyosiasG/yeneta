@@ -20,7 +20,7 @@ import Staff from './Componet/staff'
 import Why from './Componet/Why'
 import Gallery from './Componet/Gallery'
 import ProgramModal from './Componet/details'
-import Abo from './Componet/About'
+
 import axios from 'axios';
 import Partnership from './Componet/Partnership'
 import { ToastContainer } from 'react-toastify';
@@ -123,7 +123,6 @@ function App() {
               <Route path="/details" element={<ProgramModal />} />
               <Route path="/detailpro" element={<ProductModal />} />
               <Route path="/Partner" element={<Partnership />} />
-              <Route path="/Abo" element={<Abo />} />
               <Route path="/Product" element={<Product />} />
               <Route path="/Shipping" element={<Shipping />} />
               <Route path="/Biography" element={<Cast />} />

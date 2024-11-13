@@ -1,9 +1,9 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import useStore from '../../store/store';
 import Programs from './programQ';
 import Events from './events';
 import PaymentForm from './PaymentForm';
-import useStore from '../../store/store';
-
 import CheckoutButton from './PaymentForm';
 import Dashboard from './Dashboard';
 import Student from './Student';
@@ -28,48 +28,66 @@ import VerifyStatus from './VerfiyStatus';
 import VerifyStatus1 from './VerfiyStatus1';
 
 function Body() {
-  const { setAdminNav , AdminNav } = useStore();
+  const { AdminNav } = useStore();
+
+  // Animation variants
+  const pageVariants = {
+    initial: {
+      opacity: 0,
+      y: 20,
+    },
+    animate: {
+      opacity: 1,
+      y: 0,
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
+    },
+  };
+
+  // Component mapping
+  const components = {
+    Programs: <Programs />,
+    Events: <Events />,
+    Dashboard: <Dashboard />,
+    Registerd: <RegisteredStudents />,
+    Verify: <Verify />,
+    Students: <Student />,
+    Staff: <Staff />,
+    Services: <Services />,
+    Gallery: <Gallerys />,
+    Testimonials: <Testimonial />,
+    Why: <Why />,
+    About: <About />,
+    Registered: <RegisteredStudents />,
+    Messages: <MessageList />,
+    Partnerships: <CompanyMessageList />,
+    Invoices: <Invoice />,
+    Products: <Product />,
+    PendingOrder: <PendingOrder />,
+    Order: <Order />,
+    Delivered: <DeliveredOrder />,
+    OnRoute: <OnRouteOrder />,
+    UnPaid: <UnPaidOrder />,
+    VerfiyStatus: <VerifyStatus />,
+    VerfiyStatus1: <VerifyStatus1 />,
+  };
+
   return (
-<>
-{ AdminNav === "Programs" && <Programs/> }
-{ AdminNav === "Events" && <Events /> }
-{ AdminNav === "Dashboard" && <Dashboard/> }
-{ AdminNav === "Registerd" && <RegisteredStudents/> }
-{ AdminNav === "Verify" && <Verify/> }
-{ AdminNav === "Students" && <Student/> }
-{ AdminNav === "Staff" && <Staff/> }
-{ AdminNav === "Services" && <Services/>}
-{ AdminNav === "Gallery" && <Gallerys/>}
-{ AdminNav === "Testimonials" && <Testimonial/>}
-{ AdminNav === "Why" && <Why/>}
-{ AdminNav === "About" && <About/>}
-{ AdminNav === "Registered" && <RegisteredStudents/>}
-{ AdminNav === "Messages" && <MessageList/>}
-{ AdminNav === "Partnerships" && <CompanyMessageList/> }
-{ AdminNav === "Invoices" && <Invoice/> }
-{ AdminNav === "Products" && <Product/> }
-{ AdminNav === "PendingOrder" && <PendingOrder/> }
-{ AdminNav === "Order" && <Order/> }
-{ AdminNav === "Delivered" && <DeliveredOrder/> }
-{ AdminNav === "OnRoute" && <OnRouteOrder/> }
-{ AdminNav === "UnPaid" && <UnPaidOrder/> }
-{ AdminNav === "VerfiyStatus" && <VerifyStatus/> }
-{ AdminNav === "VerfiyStatus1" && <VerifyStatus1/> }
-
-
-
-{/*}
-<div className='h-full w-full bg-stone-50'>
-<div className=' flex flex-row justify-between flex-wrap'>
-<div className=' shadow-lg flex gap-2 p-2 border border-gray-200 w-48 min-w-16 rounded-sm bg-white m-2'><h1>Students</h1> <h1>18</h1></div>
-<div className=' shadow-lg flex ga p-2 border border-gray-200 w-48 min-w-16 rounded-sm bg-white m-2'><h1>Classes</h1> <h1>18</h1></div>
-<div className=' shadow-lg flex ga p-2 border border-gray-200 w-48 min-w-16 rounded-sm bg-white m-2'><h1>Staff</h1> <h1>18</h1></div>
-<div className=' shadow-lg flex ga p-2 border border-gray-200 w-48 min-w-16 rounded-sm bg-white m-2'><h1>Events</h1> <h1>18</h1></div>
-<div className=' shadow-lg flex ga p-2 border border-gray-200 w-48 min-w-16 rounded-sm bg-white m-2'><h1>Payment</h1> <h1>18</h1></div>
-
-</div>
-</div>*/}
-</>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={AdminNav}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={pageVariants}
+        transition={{ duration: 0.3 }}
+        className="min-h-full"
+      >
+        {components[AdminNav] || <Dashboard />}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

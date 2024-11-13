@@ -2,167 +2,176 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import useStore from '../store/store';
+import { motion } from 'framer-motion';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
-  const [name, setName] = useState();
+  const [name, setName] = useState('');
   const [totalPrice, setTotalPrice] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const { totalItems, setTotalItems } = useStore(); // useStore to track total number of items in the cart
+  const { totalItems, setTotalItems } = useStore();
+
   useEffect(() => {
-    setIsLoading(true);
-    const savedCart = localStorage.getItem('shoppingCart');
-    if (savedCart) {
-      const parsedCart = JSON.parse(savedCart);
-      setCartItems(parsedCart);
-      setTotalItems(parsedCart.reduce((acc, item) => acc + item.quantity, 0)); // Calculate total items
-    }
-    setIsLoading(false);
+    const loadCart = () => {
+      setIsLoading(true);
+      const savedCart = localStorage.getItem('shoppingCart');
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        setCartItems(parsedCart);
+        setTotalItems(parsedCart.reduce((acc, item) => acc + item.quantity, 0));
+      }
+      setIsLoading(false);
+    };
+
+    loadCart();
   }, []);
 
-  useEffect(() => {
-    console.log(`Total items in cart: ${totalItems}`); // Console log the total number of items
-  }, [totalItems]);
-
-  const handleCheckoutClick = () => {
-    const namesAndQuantities = cartItems.map((item) => `${item.name}.${item.quantity}`).join(',');
-    setName(namesAndQuantities);
+  const updateCart = (newCart) => {
+    setCartItems(newCart);
+    setTotalItems(newCart.reduce((acc, item) => acc + item.quantity, 0));
+    localStorage.setItem('shoppingCart', JSON.stringify(newCart));
   };
 
   const removeFromCart = (id) => {
     const updatedCart = cartItems.filter((item) => item.id !== id);
-    setCartItems(updatedCart);
-    setTotalItems(updatedCart.reduce((acc, item) => acc + item.quantity, 0)); // Update total items
-    localStorage.setItem('shoppingCart', JSON.stringify(updatedCart));
+    updateCart(updatedCart);
   };
 
-  const addQuantity = (id) => {
+  const updateQuantity = (id, change) => {
     const updatedCart = cartItems.map((item) => {
       if (item.id === id) {
-        return { ...item, quantity: item.quantity + 1 };
+        const newQuantity = item.quantity + change;
+        return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
       }
       return item;
     });
-    setCartItems(updatedCart);
-    setTotalItems(updatedCart.reduce((acc, item) => acc + item.quantity, 0)); // Update total items
-    localStorage.setItem('shoppingCart', JSON.stringify(updatedCart));
-  };
-
-  const subtractQuantity = (id) => {
-    const updatedCart = cartItems.map((item) => {
-      if (item.id === id && item.quantity > 1) {
-        return { ...item, quantity: item.quantity - 1 };
-      }
-      return item;
-    });
-    setCartItems(updatedCart);
-    setTotalItems(updatedCart.reduce((acc, item) => acc + item.quantity, 0)); // Update total items
-    localStorage.setItem('shoppingCart', JSON.stringify(updatedCart));
+    updateCart(updatedCart);
   };
 
   useEffect(() => {
-    const total = cartItems.reduce((total, item) => total + parseFloat(item.price) * item.quantity, 0);
-    const namesAndQuantities = cartItems.map((item, index) => `${index + 1}. ${item.name} . . Qty: ${item.quantity}/`).join('\n');
-    setName(namesAndQuantities);
+    const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
+    const itemsList = cartItems
+      .map((item, idx) => `${idx + 1}. ${item.name} . . Qty: ${item.quantity}/`)
+      .join('\n');
+    setName(itemsList);
     setTotalPrice(total.toFixed(2));
   }, [cartItems]);
 
-
-  const calculateTotal = () =>
-    cartItems.reduce((total, item) => total + parseFloat(item.price) * item.quantity, 0);
-  
   if (isLoading) {
     return (
-      <div className="cart min-h-[70vh] flex justify-center items-center bg-gray-100 rounded-lg shadow-md">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-[70vh] flex justify-center items-center bg-gray-50"
+      >
         <div className="text-center p-10">
-          <i className="fa fa-spinner fa-spin fa-3x text-secondary mb-4"></i>
-          <h2 className="text-lg text-secondary font-semibold animate-pulse">
-            Loading your cart...
-          </h2>
+          <div className="animate-spin h-12 w-12 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4"/>
+          <h2 className="text-xl text-gray-700 font-medium">Loading your cart...</h2>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (cartItems.length === 0) {
     return (
-      <div className="cart min-h-[70vh] flex justify-center items-center bg-gray-100 rounded-lg shadow-md">
-        <div className="text-center p-10">
-          <i className="fa fa-shopping-cart fa-3x text-gray-400 mb-4"></i>
-          <p className="text-lg text-gray-600 ">
-            Your cart is currently empty.
-          </p>
-          <p className="text-sm text-gray-500 ">
-            Looks like you haven't made your choice yet.
-          </p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="min-h-[70vh] flex flex-col justify-center items-center bg-gray-50 p-8"
+      >
+        <div className="text-center space-y-4">
+          <i className="fas fa-shopping-cart text-5xl text-gray-400"/>
+          <h2 className="text-2xl font-semibold text-gray-700">Your cart is empty</h2>
+          <p className="text-gray-500">Start shopping to add items to your cart</p>
+          <Link 
+            to="/product"
+            className="inline-block mt-4 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Continue Shopping
+          </Link>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="container mx-auto mt-8 p-8 bg-white rounded-lg shadow-2xl min-h-screen max-w-8xl">
-      <h2 className="text-5xl font-bold text-center mb-8 text-secondary shadow-secondary  display-1 border py-6 rounded-xl shadow-md "> <i class="fa-solid fa-cart-shopping "></i>  Your Cart</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="col-span-2 bg-white rounded-lg shadow-lg border p-8 space-y-6">
-          <h3 className="text-3xl font-semibold mb-4 text-center text-secondary display-1">Your Items</h3>
-          <ul className="space-y-6">
-            {cartItems.map((item, index) => (
-              <li key={index} className="flex justify-between items-center p-6 bg-gray-50 rounded-lg shadow">
-                <div>
-                  <h4 className="text-2xl font-semibold mb-1">{item.name}</h4>
-                  <div className="flex items-center space-x-4">
-                    <button
-                      onClick={() => addQuantity(item.id)}
-                      className="p-2 px-4 bg-green-100 text-green-700 rounded-full"
-                    >
-                      +
-                    </button>
-                    <span className="text-xl">{item.quantity}</span>
-                    <button
-                      onClick={() => subtractQuantity(item.id)}
-                      className="p-2 px-4 bg-red-100 text-red-700 rounded-full"
-                    >
-                      -
-                    </button>
-                  </div>
-                  <p className="text-gray-600 mt-1">
-                    Price: ${item.price}, Total: <span className="text-red-500">${(item.price * item.quantity).toFixed(2)}</span>
-                  </p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="container mx-auto px-4 py-12 max-w-7xl"
+    >
+      <h1 className="text-4xl font-bold text-center mb-12 text-gray-800">
+        Shopping Cart
+      </h1>
+
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {cartItems.map((item, index) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white rounded-xl shadow-sm p-6 flex justify-between items-center"
+            >
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold">{item.name}</h3>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => updateQuantity(item.id, -1)}
+                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                  >
+                    -
+                  </button>
+                  <span className="text-lg font-medium">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.id, 1)}
+                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                  >
+                    +
+                  </button>
                 </div>
-                <button
-                  onClick={() => removeFromCart(item.id)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full shadow-lg transition"
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
+                <p className="text-gray-600">
+                  ${(item.price * item.quantity).toFixed(2)}
+                </p>
+              </div>
+              <button
+                onClick={() => removeFromCart(item.id)}
+                className="text-red-500 hover:text-red-700 transition"
+              >
+                <i className="fas fa-trash"/>
+              </button>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="bg-white rounded-xl shadow-xl p-10 w-full space-y-6 border">
-          <h3 className="text-4xl font-bold mb-5 text-center text-secondary display-1">Order Summary</h3>
-          <p className="text-xl my-8 font-bold shadow p-4">
-            <i class="fa-solid fa-money-bill-wave"></i> Total Price: <span className="text-red-600 font-extrabold text-2xl px-4 py-3 rounded-full">${calculateTotal()}</span>
-          </p>
-
-          <div className='py-6 my-6 w-full flex justify-center'>
-          <Link
-            to="/Shipping"
-            state={{
-              id: '1',
-              name: name,
-              price: totalPrice,
-            }}
-            className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-pink-500 hover:to-yellow-500 text-white font-bold px-8 py-4 rounded-full transition duration-300 ease-in-out text-center shadow-xl"
-          >
-            Proceed to Checkout
-          </Link>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white rounded-xl shadow-lg p-8"
+        >
+          <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+          <div className="space-y-4">
+            <div className="flex justify-between text-lg">
+              <span>Subtotal</span>
+              <span>${totalPrice}</span>
+            </div>
+            <hr/>
+            <div className="flex justify-between text-xl font-bold">
+              <span>Total</span>
+              <span>${totalPrice}</span>
+            </div>
+            <Link
+              to="/Shipping"
+              state={{ id: '1', name, price: totalPrice }}
+              className="block w-full py-4 px-6 text-center bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition mt-8"
+            >
+              Proceed to Checkout
+            </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
