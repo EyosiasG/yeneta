@@ -92,7 +92,7 @@ const Why = () => {
   return (
     <motion.div
       {...containerAnimation}
-      className="min-h-screen relative bg-gradient-to-b from-gray-50 to-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8 pt-40 md:pt-20 "
+      className="min-h-screen relative bg-gradient-to-b from-gray-50 to-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8 pt-40 md:pt-20 overflow-hidden"
     >
        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent skew-x-12 blur-sm"></div>
        <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-color1/10 to-transparent skew-x-12 blur-sm"></div>

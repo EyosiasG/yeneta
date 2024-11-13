@@ -80,7 +80,7 @@ const Service = ({ isHome = false }) => {
     <motion.div
       variants={animations.item}
       whileHover={{ y: -8, transition: { duration: 0.3 } }}
-      className="w-full sm:w-[calc(50%-1rem)] lg:w-[calc(20%-1rem)] p-6"
+      className="w-full sm:w-[calc(50%-1rem)] md:w-[calc(39%-1rem)] lg:w-[calc(25%-1rem)] p-6"
     >
       <div className="relative h-full bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl overflow-hidden">
         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-color1/20 to-transparent rounded-bl-[50%]" />
@@ -163,9 +163,9 @@ const Service = ({ isHome = false }) => {
     <>
       {!isHome && <Hero eng="Services" amh="አገልግሎታችን"/>}
       
-      <div className="bg-gradient-to-b from-white to-gray-50 py-20 relative">
+      <div className="bg-gradient-to-b from-white to-gray-50 py-20 relative overflow-hidden">
       <div className="absolute top-0 -left-20 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent skew-x-12"></div>
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent skew-x-12"></div>
+      <div className="sm:block hidden absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent skew-x-12 overflow-hidden"></div>
         <div className=" mx-0 px-4 py-10">
           <ServiceHeader />
           
@@ -176,7 +176,7 @@ const Service = ({ isHome = false }) => {
               animate="visible"
               className="flex flex-wrap justify-center gap-8"
             >
-              {a_Service.map((service) => (
+              {a_Service.slice(1,4).map((service) => (
                 <ServiceCard key={service.id} service={service} />
               ))}
             </motion.div>
