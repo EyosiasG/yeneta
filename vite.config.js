@@ -13,6 +13,9 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    cache: {
+      dir: '.vite/cache',
+    },
   }
 })
 // vite.config.js
