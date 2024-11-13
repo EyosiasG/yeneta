@@ -105,10 +105,10 @@ const Program = ({ isHome = false }) => {
             transition={{ duration: 0.8 }}
             className="text-center max-w-4xl mx-auto"
           >
-            <h4 className="mb-4 inline-block p-4 border-b-4 border-orange-400 text-orange-500 text-2xl rounded-full shadow-xl backdrop-blur-sm">
-              {en ? "🌟 Our Magical Programs 🌟" : "✨ ክፍሎች ✨"}
+            <h4           className="inline-block px-8 py-3 bg-color1/10 text-color1 rounded-full text-xl font-bold mb-6">
+              {en ? "🌟 Our Programs " : "✨ ክፍሎች ✨"}
             </h4>
-            <h1 className="mb-8 text-3xl sm:text-4xl lg:text-5xl text-orange-600 font-bold py-10 px-10 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-pink-500">
+            <h1 className="mb-8 text-3xl sm:text-4xl lg:text-5xl text-color1 font-bold py-10 px-10 display-1">
               {en ? "Join Our Wonderful World of Learning!" : "አስደሳች የትምህርት ዓለም ይቀላቀሉ!"}
             </h1>
           </motion.div>
