@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import useStore from '../../store/store';
 import { Pie, Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 function Dashboard() {
   const { setAdminNav } = useStore();
+  const [fem1, setFem1] = useState(null);
 
   const [counts, setCounts] = useState({
     messages: 0,
@@ -37,9 +38,23 @@ function Dashboard() {
     datasets: [{
       label: 'Number of Students Per Course',
       data: [],
-      backgroundColor: 'rgba(99, 102, 241, 0.5)',
-      borderColor: 'rgba(99, 102, 241, 1)',
-      borderWidth: 1
+      backgroundColor: [
+        'green',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 159, 64, 1)'
+      ],
+      borderColor: [
+        'green',
+        'rgba(54, 162, 235, 1)', 
+        'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 159, 64, 1)'
+      ],
+      borderWidth: 2
     }]
   });
 
@@ -81,22 +96,57 @@ function Dashboard() {
           deliveredOrders: apiData.orders_count.delivered || 0,
           onRouteOrders: apiData.orders_count.Onroute || 0
         });
-
-        setBarData({
-          labels: Object.keys(apiData.enrolled_students_by_program1),
-          datasets: [{
-            label: 'Number of Students Per Course',
-            data: Object.values(apiData.enrolled_students_by_program1),
-            backgroundColor: 'rgba(99, 102, 241, 0.5)',
-            borderColor: 'rgba(99, 102, 241, 1)',
-            borderWidth: 1
-          }]
-        });
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
+
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API}/api/Chart`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        if (data.status === 1) {
+          setFem1(data);
+          const labels = Object.keys(data["Students in course"]);
+          const values = Object.values(data["Students in course"]);
+
+          setBarData({
+            labels: labels,
+            datasets: [{
+              label: 'Number of Students Per Course',
+              data: values,
+              backgroundColor: [
+                'green',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)', 
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+              ],
+              borderColor: [
+                'green',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)', 
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+              ],
+              borderWidth: 2
+            }]
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch student data:", error);
+      }
+    };
+
+    fetchStudentData();
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -170,17 +220,68 @@ function Dashboard() {
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl bg-white p-6 shadow-lg">
             <h3 className="mb-6 text-center text-lg font-semibold text-gray-800">Gender Distribution</h3>
-            <Pie data={genderData} options={{ plugins: { legend: { position: 'bottom' } } }} />
+            <div style={{ height: '400px', position: 'relative' }}>
+              <Pie 
+                data={genderData} 
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { 
+                      position: 'bottom',
+                      labels: {
+                        padding: 20,
+                        usePointStyle: true
+                      }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => {
+                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = Math.round((context.raw / total) * 100);
+                          return `${context.label}: ${context.raw} (${percentage}%)`;
+                        }
+                      }
+                    }
+                  }
+                }} 
+              />
+            </div>
           </div>
           <div className="rounded-2xl bg-white p-6 shadow-lg">
             <h3 className="mb-6 text-center text-lg font-semibold text-gray-800">Students per Course</h3>
-            <Bar 
-              data={barData} 
-              options={{ 
-                scales: { y: { beginAtZero: true } },
-                plugins: { legend: { position: 'bottom' } }
-              }} 
-            />
+            <div style={{ height: '400px', position: 'relative' }}>
+              <Bar 
+                data={barData} 
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grid: {
+                        drawBorder: false,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                      }
+                    },
+                    x: {
+                      grid: {
+                        display: false
+                      }
+                    }
+                  },
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        padding: 20,
+                        usePointStyle: true
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
           </div>
         </section>
 

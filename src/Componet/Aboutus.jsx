@@ -1,11 +1,13 @@
 import Hero1 from "../assets/img/hero7.webp";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import useStore from "../store/store";
 import PopOutPlayer from "./PopOutPlayer";
 import Hero from "./hero";
+import { motion } from "framer-motion";
 
 const About = ({ isHome = false }) => {
   const en = useStore((state) => state.en);
+  const [isLoading, setIsLoading] = useState(true);
   const {
     setAbout_link,
     setAboutImgUrl,
@@ -21,15 +23,14 @@ const About = ({ isHome = false }) => {
 
   useEffect(() => {
     const fetchAboutUs = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch(`${import.meta.env.VITE_API}/api/aboutus`);
         if (!response.ok) throw new Error("Network response was not ok");
         
         const data = await response.json();
         if (data.status === 1) {
-          
           setA_Aboutus(data.data);
-          console.log(data.data[0].description_am , data.data[0].description , data.data[0].title_am , data.data[0].title , data.data[0].link , data.data[0].img_url , data.data[0].subTitle_am , data.data[0].subTitle, data.data[0].aboutus_am , data.data[0].aboutus,'D  ');
           setAbout_link(data.data[0].link);
           setAboutImgUrl(data.data[0].img_url);
           setAboutDescriptionAm(data.data[0].description_am);
@@ -37,12 +38,67 @@ const About = ({ isHome = false }) => {
         }
       } catch (error) {
         console.error("Error fetching about us data:", error);
+      } finally {
+        setTimeout(() => setIsLoading(false), 1500); // Add slight delay for shimmer effect
       }
     };
 
     fetchAboutUs();
   }, []);
 
+  const ShimmerEffect = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="py-20"
+    >
+      <div className="container mx-auto py-20">
+        <div className="flex flex-wrap mx-8 items-center">
+          <div className="w-full lg:w-1/2 px-4">
+            <div className="relative overflow-hidden">
+              <div className="h-[400px] bg-gray-200 rounded-lg"></div>
+              <div className="absolute top-0 left-0 w-full h-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            </div>
+          </div>
+          <div className="w-full lg:w-1/2 px-4">
+            <div className="w-full flex justify-center">
+              <div className="relative overflow-hidden">
+                <div className="h-8 w-48 bg-gray-200 rounded-lg mb-4"></div>
+                <div className="absolute top-0 left-0 w-full h-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+              </div>
+            </div>
+            <div className="relative overflow-hidden">
+              <div className="h-10 w-3/4 bg-gray-200 rounded-lg mb-4"></div>
+              <div className="absolute top-0 left-0 w-full h-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+            </div>
+            <div className="space-y-4">
+              {[1,2,3].map((i) => (
+                <div key={i} className="relative overflow-hidden">
+                  <div className="h-4 bg-gray-200 rounded-lg"></div>
+                  <div className="absolute top-0 left-0 w-full h-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap -mx-4 mb-10 mt-8">
+              {[1,2,3,4,5,6].map((i) => (
+                <div key={i} className="w-full lg:w-1/2 px-4 mb-3">
+                  <div className="relative overflow-hidden">
+                    <div className="h-6 bg-gray-200 rounded-lg"></div>
+                    <div className="absolute top-0 left-0 w-full h-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  if (isLoading) {
+    return <ShimmerEffect />;
+  }
 
   return (
     <>

@@ -1,162 +1,190 @@
 import React, { useEffect, useState } from 'react';
 import { MessagePopup } from './MessagePopup';
-import useStore from '../../store/store'; 
+import useStore from '../../store/store';
 import Swal from 'sweetalert2';
+import DashboardTable from '../../components/DashboardTable';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 
-const MessageCard = ({ name, email, message ,index ,offset }) => {
-
-  const [showPopup, setShowPopup] = useState(false);
-  
-  return (
-    <tr className="bg-white border-b hover:bg-gray-50">
-      <td className="py-4 px-6 font-bold">{index + 1 + offset}</td>
-      <td className="py-4 px-6">{name}</td>
-      <td className="py-4 px-6">{email}</td>
-      <td className="py-4 px-6 truncate max-w-[200px] ">{message.length > 75 ? `${message.substring(0, 72)}...` : message}</td>
-      <td className="py-4 px-6">
-        <button onClick={() => setShowPopup(!showPopup)} className="text-white bg-teal-500 hover:bg-teal-700 px-3 py-1 rounded transition-colors duration-200 ease-in-out">
-          More
-        </button>
-        {showPopup && <MessagePopup message={message} name={name} onClose={() => setShowPopup(false)} />}
-      </td>
-    </tr>
-  );
-};
- 
 const MessageList = () => {
-  const [showForm, setShowForm] = useState(false);
-  const [items, setItems] = useState([]);
   const [offset, setOffset] = useState(0);
-  const [length, setlength] = useState("");
-  const limit = 10; // Items per page
+  const [length, setLength] = useState(0);
+  const limit = 10;
   const [showPopup, setShowPopup] = useState(false);
-  const handleNext = () => {
-    setOffset(prevOffset => prevOffset + limit);
-  };
+  const [selectedMessage, setSelectedMessage] = useState(null);
 
-  const handlePrevious = () => {
-    setOffset(prevOffset => Math.max(0, prevOffset - limit));
-  };
+  const handleNext = () => setOffset(prev => prev + limit);
+  const handlePrevious = () => setOffset(prev => Math.max(0, prev - limit));
+
   const { setA_Message, a_Message } = useStore();
- 
-  const fetchMessage =   async () => {
-    const allRides = `${import.meta.env.VITE_API}/api/Messages?offset=${offset}&limit=10`;
 
-    const response = await fetch(allRides, {
-      method: "GET",
-    });
-    if (!response.ok) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Network response was not ok'
-      });
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-    if (data.status === 1) {
-     setA_Message(data.data);
-     setlength(data.length || 0);
-    } else {
-      setA_Message([]);
-      setlength(0);
-      Swal.fire({
-        icon: 'info',
-        title: 'No data',
-        text: 'No messages found'
-      });
-      return;
-    }
-  }
-  useEffect(() => {
-    fetchMessage();
-  }, [offset]);
-  const handleDelete = async (messageId) => {
-    const deleteUrl = `${import.meta.env.VITE_API}/api/Messages/${messageId}`;
+  const fetchMessage = async () => {
     try {
-      const response = await fetch(deleteUrl, {
-        method: "DELETE",
-      });
+      const response = await fetch(`${import.meta.env.VITE_API}/api/Messages?offset=${offset}&limit=${limit}`);
+      
       if (!response.ok) {
-        throw new Error("Failed to delete the message");
+        throw new Error("Network response was not ok");
       }
-      Swal.fire({
-        icon: 'success',
-        title: 'Deleted!',
-        text: 'Message has been deleted.'
-      });
-      // Refresh the messages list after deletion
-      fetchMessage();
+
+      const data = await response.json();
+      if (data.status === 1) {
+        setA_Message(data.data);
+        setLength(data.total || 0);
+      } else {
+        setA_Message([]);
+        setLength(0);
+        Swal.fire({
+          icon: 'info',
+          title: 'No Messages',
+          text: 'No messages found',
+          customClass: {
+            container: 'font-sans'
+          }
+        });
+      }
     } catch (error) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Failed to delete the message'
+        text: 'Failed to fetch messages',
+        customClass: {
+          container: 'font-sans'
+        }
       });
-      console.error("Error deleting message:", error);
     }
   };
 
-  return (
-    <>
-    <h1 className='text-4xl font-bold text-center pt-10 text-teal-800'>All Messages</h1>
-    <div className="m-8 mx-12 bg-white shadow-xl rounded-2xl p-4 min-h-[100vh] flex flex-col justify-start items-center overflow-hidden">
-      <table className="w-full text-sm text-left text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-200">
-          <tr>
-            
-          <th className="py-3 px-6">No</th>
-            <th className="py-3 px-6">Name</th>
-            <th className="py-3 px-6">Email</th>
-            <th className="py-3 px-6">Message</th>
-            <th className="py-3 px-6">Actions</th>
-            
-          </tr>
+  useEffect(() => {
+    fetchMessage();
+  }, [offset]);
 
-        </thead>
+  const handleDelete = async (item) => {
+    try {
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!',
+        customClass: {
+          container: 'font-sans'
+        }
+      });
+
+      if (result.isConfirmed) {
+        const response = await fetch(`${import.meta.env.VITE_API}/api/Messages/${item.id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) throw new Error("Failed to delete");
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Message has been deleted.',
+          customClass: {
+            container: 'font-sans'
+          }
+        });
         
-        <tbody>
-          {a_Message.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="py-4 px-6 text-center text-gray-500">
-                No data available
-              </td>
-            </tr>
-          ) : (
-            a_Message.map((user, index) => (
-              <tr className="bg-white border-b hover:bg-gray-50">
-                <td className="py-4 px-6 font-bold">{index + 1 + offset}</td>
-                <td className="py-4 px-6">{user.name}</td>
-                <td className="py-4 px-6">{user.email}</td>
-                <td className="py-4 px-6 truncate max-w-[200px] ">{user.message}</td>
-                <td className="py-4 px-6 flex flex-col gap-5">
-                  <button onClick={() => setShowPopup(!showPopup)} className="text-white bg-teal-500 hover:bg-teal-700 px-3 py-1 rounded transition-colors duration-200 ease-in-out">
-                    More
-                  </button>
-                  <button onClick={() => handleDelete(user.id)} className="text-white bg-red-500 hover:bg-red-700 px-3 py-1 rounded transition-colors duration-200 ease-in-out">
-                    delete
-                  </button>
-                  {showPopup && <MessagePopup message={user.message} name={user.name} onClose={() => setShowPopup(false)} />}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      <div className='flex justify-end w-full px-8 py-4'>
-        <button onClick={handlePrevious} className='text-teal-700 hover:bg-teal-600 hover:text-white border border-teal-500 px-3 py-2 rounded-xl mr-2' disabled={offset === 0}>
-          Previous
-        </button>
-        <button onClick={handleNext} className='text-teal-700 hover:bg-teal-600 hover:text-white border border-teal-500 px-3 py-2 rounded-xl' disabled={offset > length}>
-          Next
-        </button>
-      </div>
+        fetchMessage();
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to delete the message',
+        customClass: {
+          container: 'font-sans'
+        }
+      });
+    }
+  };
+
+  const columns = [
+    {
+      header: "Name",
+      field: "name"
+    },
+    {
+      header: "Email",
+      field: "email"
+    },
+    {
+      header: "Message",
+      field: "message",
+      render: (item) => (
+        <div className="truncate max-w-[300px]">
+          {item.message}
+        </div>
+      )
+    }
+  ];
+
+  const customRowRender = (item, index) => (
+    <tr key={item.id} className="group hover:bg-indigo-50/30 transition-all duration-200">
+      <td className="sticky left-0 bg-white/90 group-hover:bg-indigo-50/30 backdrop-blur-xl px-6 py-5 text-gray-700 font-medium">
+        {index}
+      </td>
+      {columns.map((column, colIndex) => (
+        <td key={colIndex} className="px-6 py-5 text-gray-600">
+          {column.render ? column.render(item) : item[column.field]}
+        </td>
+      ))}
+      <td className="sticky right-0 bg-white/90 group-hover:bg-indigo-50/30 backdrop-blur-xl px-6 py-5">
+        <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          <button
+            onClick={() => {
+              setSelectedMessage(item);
+              setShowPopup(true);
+            }}
+            className="p-2.5 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-100 rounded-xl transition-all duration-200 hover:scale-110"
+            title="View Message"
+          >
+            <FontAwesomeIcon icon={faEye} className="text-lg" />
+          </button>
+          <button
+            onClick={() => handleDelete(item)}
+            className="p-2.5 text-red-500 hover:text-red-600 hover:bg-red-100 rounded-xl transition-all duration-200 hover:scale-110"
+            title="Delete"
+          >
+            <FontAwesomeIcon icon={faTrash} className="text-lg" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+
+  return (
+    <div className="p-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">Messages</h1>
+      
+      <DashboardTable
+        columns={columns}
+        data={a_Message}
+        onDelete={handleDelete}
+        offset={offset}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        totalLength={length}
+        limit={limit}
+        customRowRender={customRowRender}
+      />
+
+      {showPopup && selectedMessage && (
+        <MessagePopup 
+          message={selectedMessage.message} 
+          name={selectedMessage.name} 
+          onClose={() => {
+            setShowPopup(false);
+            setSelectedMessage(null);
+          }} 
+        />
+      )}
     </div>
-  </>
-  
-     );
+  );
 };
 
 export default MessageList;
-
-

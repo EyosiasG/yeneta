@@ -10,17 +10,14 @@ import { fas } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Swal from 'sweetalert2';
 library.add(fas);
+
 const Testimonial = () => {
-    const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [items, setItems] = useState([]);
-     const [offset, setOffset] = useState(0);
-     const [length, setlength] = useState("");
-  const limit = 10; // Items per page
+  const [offset, setOffset] = useState(0);
+  const [length, setlength] = useState("");
+  const limit = 10;
 
-  // Fetch items from the backend
-
-
-  // Pagination handlers
   const handleNext = () => {
     setOffset(prevOffset => prevOffset + limit);
   };
@@ -29,22 +26,18 @@ const Testimonial = () => {
     setOffset(prevOffset => Math.max(0, prevOffset - limit));
   };
 
-    const toggleForm = () => {
-        setShowForm(!showForm);
-    };
+  const toggleForm = () => {
+    setShowForm(!showForm);
+  };
+
   const [programs, setPrograms] = useState({});
   const [editingProgram, setEditingProgram] = useState(null);
   const { setA_Ceo, en,setA_Why, setA_Aboutus, setA_Service, setA_Program, setA_Blog, setA_Event , setA_Staff, setA_Gallery, setA_Testimonials, a_Why, a_Ceo, a_Aboutus,a_Event,  a_Service, a_Program, a_Blog, a_Staff, a_Gallery, a_Testimonials } = useStore();
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
-
-
- 
-  const fetchPrograms =   async () => {
-    const allRides = `${
-      import.meta.env.VITE_API
-    }/api/Testimonial?offset=0&limit=10`;
+  const fetchPrograms = async () => {
+    const allRides = `${import.meta.env.VITE_API}/api/Testimonial?offset=0&limit=10`;
 
     const response = await fetch(allRides, {
       method: "GET",
@@ -54,359 +47,378 @@ const Testimonial = () => {
     }
     const data = await response.json();
     if (data.status === 1) {
-     setA_Testimonials(data.data);
-     setlength(data.length); 
-    } else {
-      return;
+      setA_Testimonials(data.data);
+      setlength(data.length); 
     }
   }
-  useEffect(() => {
-  
- 
-    fetchPrograms();},
-     []);
 
-     const handleDelete = async (id) => {
+  useEffect(() => {
+    fetchPrograms();
+  }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${import.meta.env.VITE_API}/api/Testimonial/${id}`);
+      
+      fetchPrograms();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Testimonial deleted successfully',
+      });
+    } catch (error) {
+      console.error('Failed to delete the Testimonial', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: error.response.data.message,
+      });
+    }
+  };
+
+  const onSubmit = async (data) => {
+    const formData = new FormData();
+    
+    if (editingProgram) {
+      for (const [key, value] of Object.entries(data)) {
+        if (key === 'img' && data.img) {
+          if (data.img.length) {
+            formData.append(key, data.img[0]);
+          } else {
+            formData.append(key, data.img);
+          }
+        } else {
+          formData.append(key, value);
+          formData.append("_method", "PUT");
+        }
+      }
+
       try {
-        await axios.delete(`${import.meta.env.VITE_API}/api/Testimonial/${id}`);
-        
-        fetchPrograms();
+        const response = await axios.post(`${import.meta.env.VITE_API}/api/Testimonial/${editingProgram.id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
         Swal.fire({
           icon: 'success',
           title: 'Success',
-          text: 'Testimonial deleted successfully',
+          text: 'Testimonial updated successfully',
         });
+        setEditingProgram(null);
+        toggleForm();
+        fetchPrograms();
       } catch (error) {
-        console.error('Failed to delete the Testimonial', error);
         Swal.fire({
           icon: 'error',
           title: 'Oops...',
           text: error.response.data.message,
         });
       }
-    };
-  // Ensure 'data.img' is appended correctly if it's a file
-// Update the onSubmit function to handle file uploads properly
-const onSubmit = async (data) => {
-  console.log("w");
-  const formData = new FormData();
-  if (editingProgram) {
-  // Loop through the data object and append each item to formData
-  for (const [key, value] of Object.entries(data)) {
-    if (key === 'img' && data.img) {
-      // Assuming data.img is a FileList (e.g., from <input type="file" multiple />)
-      // If it's a single file, not a list, you can append it directly without looping
-      if (data.img.length) {
-        // Append each file if multiple files are supported
-        formData.append(key, data.img[0]); // Only append the first file if multiple files are supported
-      } else {
-        // Directly append the file if only single file upload is supported
-        formData.append(key, data.img);
-      }
     } else {
-      // Append non-file data normally
-      formData.append(key, value);
-      formData.append("_method", "PUT");
-
-      
-    }
-  }
-
-  try {
-    const response = await 
-      axios.post(`${import.meta.env.VITE_API}/api/Testimonial/${editingProgram.id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-    const responseData = response.data;
-    console.log(responseData);
-    Swal.fire({
-      icon: 'success',
-      title: 'Success',
-      text: 'Testimonial updated successfully',
-    });
-    setEditingProgram(null);
-    toggleForm();
-    fetchPrograms();
-  } catch (error) {
-    console.error('Error:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Oops...',
-      text: error.response.data.message,
-    });
-  }
-} else{
-  for (const [key, value] of Object.entries(data)) {
-    if (key === 'img' && data.img) {
-      // Assuming data.img is a FileList (e.g., from <input type="file" multiple />)
-      // If it's a single file, not a list, you can append it directly without looping
-      if (data.img.length) {
-        // Append each file if multiple files are supported
-        formData.append(key, data.img[0]); // Only append the first file if multiple files are supported
-      } else {
-        // Directly append the file if only single file upload is supported
-        formData.append(key, data.img);
-      }
-    } else {
-      // Append non-file data normally
-      formData.append(key, value);      
-    }
-  }
-
-  try {
-    const response = await axios.post(`${import.meta.env.VITE_API}/api/Testimonial`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-    const responseData = response.data;
-    console.log(responseData);
-    Swal.fire({
-      icon: 'success',
-      title: 'Success',
-      text: 'Testimonial created successfully',
-    });
-    setEditingProgram(null);
-    toggleForm();
-    fetchPrograms();
-  } catch (error) {
-    console.error('Error:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Oops...',
-      text: error.response.data.message,
-    });
-  }}
-};
-
-  return (
-    <div className='pt-10'>
-            <h1 className='text-center text-5xl text-color1 -700 display-1'>Testimonial</h1>
-
-            <div className="mb-4 px-5">
-  <label htmlFor="searchStudentId" className="block text-sm font-medium text-gray-700">Search by Author</label>
-  <div className="mt-1 relative rounded-md flex-row gap-4 shadow-sm">
-    <input
-      type="text"
-      name="searchStudentId"
-      id="searchStudentId"
-      className="focus:ring-indigo-500 focus:border-indigo-500 block  pl-7 h-11 w-72 pr-12 sm:text-sm border border-gray-700 rounded-md"
-      placeholder="Enter Author"
-      onChange={async (e) => {
-        const studentId = e.target.value;
-        if (studentId.trim() !== '') {
-          try {
-            const response = await fetch(`${import.meta.env.VITE_API}/api/Testimonial/${studentId}`, { 
-              method: 'GET',
-            });
-            if (!response.ok) {
-              throw new Error("Failed to fetch data");
-            }
-            const data = await response.json();
-            if (data.status === 1) {
-              setA_Testimonials(data.data); // Assuming the API returns a single student object
-            } else {
-              setA_Testimonials([]); // Clear the list if no student is found or in case of other statuses
-            }
-          } catch (error) {
-            console.error('Error fetching student by ID:', error);
+      for (const [key, value] of Object.entries(data)) {
+        if (key === 'img' && data.img) {
+          if (data.img.length) {
+            formData.append(key, data.img[0]);
+          } else {
+            formData.append(key, data.img);
           }
         } else {
-          fetchPrograms(); // Reset to original list if input is cleared
+          formData.append(key, value);      
         }
-      }}
-  
-  />
-   <div className='w-full flex flex-row justify-end px-4 mb-4'>
-      <button onClick={() => { setEditingProgram(null); toggleForm(!showForm); }} className='display-1 text-white font-semibold bg-color1 -600  rounded-lg px-3 py-2'>Add New Testmonial</button>
-     
+      }
 
+      try {
+        const response = await axios.post(`${import.meta.env.VITE_API}/api/Testimonial`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        Swal.fire({
+          icon: 'success', 
+          title: 'Success',
+          text: 'Testimonial created successfully',
+        });
+        setEditingProgram(null);
+        toggleForm();
+        fetchPrograms();
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: error.response.data.message,
+        });
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className=" mx-auto">
+        <h1 className="text-4xl font-bold text-center text-gray-800 mb-12">
+          Testimonial Management
+        </h1>
+
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="w-full md:w-1/3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search by Author
+              </label>
+              <input
+                type="text"
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Enter author name..."
+                onChange={async (e) => {
+                  const authorName = e.target.value;
+                  if (authorName.trim() !== '') {
+                    try {
+                      const response = await fetch(`${import.meta.env.VITE_API}/api/Testimonial/${authorName}`);
+                      if (!response.ok) throw new Error("Failed to fetch data");
+                      const data = await response.json();
+                      if (data.status === 1) {
+                        setA_Testimonials(data.data);
+                      } else {
+                        setA_Testimonials([]);
+                      }
+                    } catch (error) {
+                      console.error('Error:', error);
+                    }
+                  } else {
+                    fetchPrograms();
+                  }
+                }}
+              />
+            </div>
+            
+            <button
+              onClick={() => { setEditingProgram(null); toggleForm(!showForm); }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200"
+            >
+              Add New Testimonial
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll No</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author (Amharic)</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Professional</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Professional (Amharic)</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {a_Testimonials.map((testimonial, index) => (
+                  <tr key={testimonial.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1 + offset}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{testimonial.author}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{testimonial.author_am}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{testimonial.professional}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{testimonial.professional_am}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <svg key={i} className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <img src={testimonial.image} alt={testimonial.author} className="h-12 w-12 rounded-full object-cover" />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => { setEditingProgram(testimonial); toggleForm(true); }}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <FontAwesomeIcon icon={faPenToSquare} className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(testimonial.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <FontAwesomeIcon icon="fa-solid fa-trash" className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+            <button
+              onClick={handlePrevious}
+              disabled={offset === 0}
+              className={`px-4 py-2 rounded-md ${
+                offset === 0
+                  ? 'bg-gray-300 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              Previous
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={offset > length - 10}
+              className={`px-4 py-2 rounded-md ${
+                offset > length - 10
+                  ? 'bg-gray-300 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
-  </div>
-  
-</div>
-     
-  <div className='rounded-lg shadow-2xl shadow-color1  bg-white flex justify-center p-1 mx-5 min-h-[80vh] '>
-  <div className='overflow-x-auto'>
-  <table className="min-w-[77vw] divide-y divide-color1 bg-gray-200">
-  <thead className="py-2">
-    <tr className='mt-8'>
-    <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-bold display-1 text-color1-500 uppercase tracking-wider">
-    Roll No
-      </th>
-      <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-bold display-1 text-color1-500 uppercase tracking-wider">
-        Author
-      </th>
-      <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-bold display-1 text-color1-500 uppercase tracking-wider">
-        Author (Amharic)
-      </th>
-      <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-bold display-1 text-color1-500 uppercase tracking-wider">
-        Professional
-      </th>
-      <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-bold display-1 text-color1-500 uppercase tracking-wider">
-        Professional (Amharic)
-      </th>
-      <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-bold display-1 text-color1-500 uppercase tracking-wider">
-        Rating
-      </th>
-      <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-bold display-1 text-color1-500 uppercase tracking-wider">
-        Image
-      </th>
-      <th scope="col" className="px-2 sm:px-6 py-3 text-left text-xs font-bold display-1 text-color1-500 uppercase tracking-wider">
-        Actions
-      </th>
-    </tr>
-  </thead>
-  <tbody className="bg-white divide-y divide-gray-200">
-    {a_Testimonials.map((testimonial , index) => (
-      <tr key={testimonial.id}>
-          <td className="px-2 sm:px-6 py-4 whitespace-nowrap">
-          <div className="text-sm font-medium text-gray-900">
-            {index + 1+ offset}
-          </div>
-        </td>
-        <td className="px-2 sm:px-6 py-4 whitespace-nowrap">
-          <div className="text-sm font-medium text-gray-900">
-            {testimonial.author}
-          </div>
-        </td>
-        <td className="px-2 sm:px-6 py-4 whitespace-nowrap">
-          <div className="text-sm text-gray-900">{testimonial.author_am}</div>
-        </td>
-        <td className="px-2 sm:px-6 py-4">
-          <div className="text-sm text-gray-900">{testimonial.professional}</div>
-        </td>
-        <td className="px-2 sm:px-6 py-4">
-          <div className="text-sm text-gray-900">{testimonial.professional_am}</div>
-        </td>
-        <td className="px-2 sm:px-6 py-4 whitespace-nowrap">
-          <div className="text-sm text-gray-900">{testimonial.rating}</div>
-        </td>
-        <td className="px-2 sm:px-6 py-4 whitespace-nowrap">
-          <img src={testimonial.image} alt="testimonial" className="w-10 h-10 rounded-full" />
-        </td>
-        <td className="px-2 sm:px-6 py-4 whitespace-nowrap flex flex-col text-right text-sm font-medium divide-x gap-2 divide-gray-200">
-          <button onClick={() => { setEditingProgram(testimonial); toggleForm(true); }}>
-            <div className='border border-color1-700 px-1 py-2 rounded-md text-color1-700'>
-              <FontAwesomeIcon icon={faPenToSquare} />
-            </div>
-          </button>
-          <button onClick={() => handleDelete(testimonial.id)}>
-            <div className='border border-color1-700 px-1 rounded-md py-2 text-color1-700'>
-              <FontAwesomeIcon icon="fa-solid fa-trash" />
-            </div>
-          </button>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-<div className='flex justify-end mt-8 mx-10'>
-<button onClick={handlePrevious} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' disabled={offset === 0}>Previous</button>
-    <button onClick={handleNext} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' 
-    disabled={offset > length - 10} 
-    >Next</button>
-</div>
-</div>
-</div>
-<button onClick={toggleForm}>X</button>
-  {showForm &&(  <div className='bg-black/60 ' style={{ position: 'absolute', top: '0%', left: '0%', width: '100%', height: '100%', overflowY: 'auto',  padding: '20px' }}>
-  <button onClick={toggleForm} className=' text-white text-xl mx-[95%] my-12 z-50 bg-red-600 rounded-full h-10 w-10 '>X</button>
 
-  {showForm && (
-        <ProgramForm onSubmit={onSubmit} initialValues={editingProgram || {}} />
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {editingProgram ? 'Edit Testimonial' : 'Add New Testimonial'}
+                </h2>
+                <button
+                  onClick={toggleForm}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <ProgramForm onSubmit={onSubmit} initialValues={editingProgram || {}} />
+            </div>
+          </div>
+        </div>
       )}
-   
-    </div>
-    
-)};
     </div>
   );
 };
 
 export default Testimonial;
-function ProgramForm({ onSubmit, initialValues }) {
 
+function ProgramForm({ onSubmit, initialValues }) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     defaultValues: initialValues,
   });
 
   useEffect(() => {
-    reset(initialValues); // Reset form with initialValues when they change
+    reset(initialValues);
   }, [initialValues, reset]);
 
   return (
-<div className='fixed inset-32 flex items-center justify-center p-10'>
-  <div className='bg-white rounded-lg shadow-2xl p-8 max-w-4xl w-full overflow-y-auto'>
-    <h1 className='text-3xl text-center font-bold text-blue-500'>Testimonial</h1>
-    <form className='space-y-6 mt-10' onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
-      {/* Author Fields */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <div className='flex flex-col'>
-          <label className='font-semibold'>Author</label>
-          <input className='form-input border border-blue-300 rounded-md p-2' {...register('author', { required: "Author is required" })} placeholder="Author" />
-          {errors.author && <p className="text-red-500 text-xs italic">{errors.author.message}</p>}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Author</label>
+          <input
+            type="text"
+            {...register('author', { required: "Author is required" })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+          {errors.author && (
+            <p className="mt-1 text-sm text-red-600">{errors.author.message}</p>
+          )}
         </div>
-        <div className='flex flex-col'>
-          <label className='font-semibold'>Author in Amharic</label>
-          <input className='form-input border border-blue-300 rounded-md p-2' {...register('author_am', { required: "Author in Amharic is required" })} placeholder="Author in Amharic" />
-          {errors.author_am && <p className="text-red-500 text-xs italic">{errors.author_am.message}</p>}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Author (Amharic)</label>
+          <input
+            type="text"
+            {...register('author_am', { required: "Author in Amharic is required" })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+          {errors.author_am && (
+            <p className="mt-1 text-sm text-red-600">{errors.author_am.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Professional Title</label>
+          <input
+            type="text"
+            {...register('professional', { required: "Professional title is required" })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+          {errors.professional && (
+            <p className="mt-1 text-sm text-red-600">{errors.professional.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Professional Title (Amharic)</label>
+          <input
+            type="text"
+            {...register('professional_am', { required: "Professional title in Amharic is required" })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+          {errors.professional_am && (
+            <p className="mt-1 text-sm text-red-600">{errors.professional_am.message}</p>
+          )}
         </div>
       </div>
 
-      {/* Professional Title Fields */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <div className='flex flex-col'>
-          <label className='font-semibold'>Professional</label>
-          <input className='form-input border border-blue-300 rounded-md p-2' {...register('professional', { required: "Professional title is required" })} placeholder="Professional" />
-          {errors.professional && <p className="text-red-500 text-xs italic">{errors.professional.message}</p>}
-        </div>
-        <div className='flex flex-col'>
-          <label className='font-semibold'>Professional in Amharic</label>
-          <input className='form-input border border-blue-300 rounded-md p-2' {...register('professional_am', { required: "Professional title in Amharic is required" })} placeholder="Professional in Amharic" />
-          {errors.professional_am && <p className="text-red-500 text-xs italic">{errors.professional_am.message}</p>}
-        </div>
-      </div>
-
-      {/* Rating Field */}
-      <div className='flex flex-col'>
-        <label className='font-semibold text-lg mb-2 text-center'>Rating</label>
-        <div className='flex items-center space-x-4 border shadow-xl justify-center p-2'>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+        <div className="flex items-center justify-center space-x-4">
           {[1, 2, 3, 4, 5].map((value) => (
-            <label key={value} className='flex items-center text-secondary display-1 space-x-1'>
+            <label key={value} className="flex items-center space-x-2">
               <input
                 type="radio"
                 value={value}
                 {...register('rating', { required: "Rating is required" })}
-                className='form-radio h-6 w-6 text-secondary focus:ring-blue-500'
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
               />
-              <span className='text-xl font-medium'>{value}</span>
+              <span className="text-gray-700">{value}</span>
             </label>
           ))}
         </div>
-        {errors.rating && <p className="text-red-500 text-sm italic">{errors.rating.message}</p>}
+        {errors.rating && (
+          <p className="mt-1 text-sm text-red-600 text-center">{errors.rating.message}</p>
+        )}
       </div>
 
-      {/* Image Upload */}
-      <div className='flex flex-col'>
-        <label className='font-semibold'>Image</label>
-        <input className='form-input border border-blue-300 rounded-md p-2' type="file" {...register('img', { required: !initialValues.id })} />
-        {errors.img && <p className="text-red-500 text-xs italic">{errors.img.message}</p>}
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Image</label>
+        <input
+          type="file"
+          {...register('img', { required: !initialValues.id })}
+          className="mt-1 block w-full text-sm text-gray-500
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-md file:border-0
+            file:text-sm file:font-semibold
+            file:bg-blue-50 file:text-blue-700
+            hover:file:bg-blue-100"
+        />
+        {errors.img && (
+          <p className="mt-1 text-sm text-red-600">{errors.img.message}</p>
+        )}
       </div>
 
-      {/* Submit Button */}
-      <div className='flex justify-center'>
-        <button type="submit" className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded w-full max-w-xs'>
-          Submit
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          {initialValues.id ? 'Update Testimonial' : 'Create Testimonial'}
         </button>
       </div>
     </form>
-  </div>
-</div>
-
   );
 }

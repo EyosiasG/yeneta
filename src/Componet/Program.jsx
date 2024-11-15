@@ -94,7 +94,7 @@ const Program = ({ isHome = false }) => {
       
       <div className="bg-cover bg-center relative min-h-screen overflow-hidden bg-stone-100">
 <div className='absolute top-10 left-4 w-full h-full'>
-{renderDotPattern()}
+
 
 </div>
 

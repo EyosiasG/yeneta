@@ -1,67 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, memo } from 'react';
 import useStore from '../store/store';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hero from './hero';
 
-const Service = ({ isHome = false }) => {
-  const { setService, en, setA_Service, a_Service } = useStore();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchServices = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API}/api/Services`);
-      if (!response.ok) throw new Error("Failed to fetch services");
-      const data = await response.json();
-      if (data.status === 1) setA_Service(data.data);
-      return data;
-    } catch (err) {
-      setError("Failed to load services. Please try again later.");
-      throw err;
-    }
-  };
-
-  const fetchTitle = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API}/api/mainTitle`);
-      if (!response.ok) throw new Error("Failed to fetch title");
-      const data = await response.json();
-      if (data.status === 1) {
-        const serviceTitle = data.data.find(item => item.name === 'Service');
-        if (serviceTitle) setService(serviceTitle);
-      }
-      return data;
-    } catch (err) {
-      setError("Failed to load title. Please try again later.");
-      throw err;
-    }
-  };
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        await Promise.all([fetchServices(), fetchTitle()]);
-      } catch (error) {
-        console.error("Error loading data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
+const ServiceCard = memo(({ service, en }) => {
   const animations = {
-    container: {
-      hidden: { opacity: 0 },
-      visible: {
-        opacity: 1,
-        transition: {
-          staggerChildren: 0.2,
-          delayChildren: 0.3
-        }
-      }
-    },
     item: {
       hidden: { opacity: 0, y: 20 },
       visible: {
@@ -76,7 +19,7 @@ const Service = ({ isHome = false }) => {
     }
   };
 
-  const ServiceCard = ({ service }) => (
+  return (
     <motion.div
       variants={animations.item}
       whileHover={{ y: -8, transition: { duration: 0.3 } }}
@@ -114,30 +57,92 @@ const Service = ({ isHome = false }) => {
       </div>
     </motion.div>
   );
+});
 
-  const ServiceHeader = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-      className="text-center mb-16"
-    >
-      <span className="inline-block px-4 py-2 bg-color1/10 text-color1 rounded-full text-sm font-medium mb-4">
-        {en ? "Our Services" : "አገልግሎታችን"}
-      </span>
-      
-      <h2 className="text-4xl md:text-5xl font-bold text-color1 display-1 mb-6">
-        {en ? "What We Offer" : "የምናቀርባቸው አገልግሎቶች"}
-      </h2>
-      
-      <p className="max-w-2xl mx-auto text-gray-600">
-        {en 
-          ? "Discover our comprehensive range of educational services designed to nurture and develop young minds."
-          : "ለወጣት አእምሮዎች እድገትና እድገት የተዘጋጁ ሁሉንም የሚያካትቱ የትምህርት አገልግሎቶቻችንን ይፋ አድርገናል።"
+const ServiceHeader = memo(({ en }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8 }}
+    className="text-center mb-16"
+  >
+    <span className="inline-block px-4 py-2 bg-color1/10 text-color1 rounded-full text-sm font-medium mb-4">
+      {en ? "Our Services" : "አገልግሎታችን"}
+    </span>
+    
+    <h2 className="text-4xl md:text-5xl font-bold text-color1 display-1 mb-6">
+      {en ? "What We Offer" : "የምናቀርባቸው አገልግሎቶች"}
+    </h2>
+    
+    <p className="max-w-2xl mx-auto text-gray-600">
+      {en 
+        ? "Discover our comprehensive range of educational services designed to nurture and develop young minds."
+        : "ለወጣት አእምሮዎች እድገትና እድገት የተዘጋጁ ሁሉንም የሚያካትቱ የትምህርት አገልግሎቶቻችንን ይፋ አድርገናል።"
+      }
+    </p>
+  </motion.div>
+));
+
+const Service = ({ isHome = false }) => {
+  const { setService, en, setA_Service, a_Service } = useStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchServices = useCallback(async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API}/api/Services`);
+      if (!response.ok) throw new Error("Failed to fetch services");
+      const data = await response.json();
+      if (data.status === 1) setA_Service(data.data);
+      return data;
+    } catch (err) {
+      setError("Failed to load services. Please try again later.");
+      throw err;
+    }
+  }, [setA_Service]);
+
+  const fetchTitle = useCallback(async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API}/api/mainTitle`);
+      if (!response.ok) throw new Error("Failed to fetch title");
+      const data = await response.json();
+      if (data.status === 1) {
+        const serviceTitle = data.data.find(item => item.name === 'Service');
+        if (serviceTitle) setService(serviceTitle);
+      }
+      return data;
+    } catch (err) {
+      setError("Failed to load title. Please try again later.");
+      throw err;
+    }
+  }, [setService]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        await Promise.all([fetchServices(), fetchTitle()]);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, [fetchServices, fetchTitle]);
+
+  const animations = {
+    container: {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          staggerChildren: 0.2,
+          delayChildren: 0.3
         }
-      </p>
-    </motion.div>
-  );
+      }
+    }
+  };
 
   if (isLoading) {
     return (
@@ -164,10 +169,10 @@ const Service = ({ isHome = false }) => {
       {!isHome && <Hero eng="Services" amh="አገልግሎታችን"/>}
       
       <div className="bg-gradient-to-b from-white to-gray-50 py-20 relative overflow-hidden">
-      <div className="absolute top-0 -left-20 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent skew-x-12"></div>
-      <div className="sm:block hidden absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent skew-x-12 overflow-hidden"></div>
+        <div className="absolute top-0 -left-20 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent skew-x-12"></div>
+        <div className="sm:block hidden absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-color1/10 to-transparent skew-x-12 overflow-hidden"></div>
         <div className=" mx-0 px-4 py-10">
-          <ServiceHeader />
+          <ServiceHeader en={en} />
           
           <AnimatePresence>
             <motion.div
@@ -177,7 +182,7 @@ const Service = ({ isHome = false }) => {
               className="flex flex-wrap justify-center gap-8"
             >
               {a_Service.slice(1,4).map((service) => (
-                <ServiceCard key={service.id} service={service} />
+                <ServiceCard key={service.id} service={service} en={en} />
               ))}
             </motion.div>
           </AnimatePresence>
@@ -187,4 +192,4 @@ const Service = ({ isHome = false }) => {
   );
 };
 
-export default Service;
+export default memo(Service);

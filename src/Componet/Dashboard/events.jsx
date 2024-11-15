@@ -1,391 +1,360 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';import useStore from '../../store/store';
+import axios from 'axios';
+import useStore from '../../store/store';
 import { useForm } from 'react-hook-form';
-import Hero1 from '../../assets/img/hero7.png'
-import { faCoffee } from '@fortawesome/free-solid-svg-icons';
-import { faPenToSquare} from '@fortawesome/free-solid-svg-icons';
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { fas } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ToastContainer, toast } from 'react-toastify';
+import { fas } from "@fortawesome/free-solid-svg-icons";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { ToastContainer } from 'react-toastify';
 import swal from 'sweetalert2';
+import DashboardTable from '../../components/DashboardTable';
+
 library.add(fas);
+
 const Events = () => {
     const [showForm, setShowForm] = useState(false);
-    const [items, setItems] = useState([]);
     const [offset, setOffset] = useState(0);
-    const [length, setlength] = useState("");
-    const limit = 10; // Items per page
+    const [length, setLength] = useState("");
+    const limit = 10;
 
-    // Pagination handlers
-    const handleNext = () => {
-        setOffset(prevOffset => prevOffset + limit);
-    };
+    const handleNext = () => setOffset(prev => prev + limit);
+    const handlePrevious = () => setOffset(prev => Math.max(0, prev - limit));
+    const toggleForm = () => setShowForm(!showForm);
 
-    const handlePrevious = () => {
-        setOffset(prevOffset => Math.max(0, prevOffset - limit));
-    };
-
-    const toggleForm = () => {
-        setShowForm(!showForm);
-    };
-
-    const [programs, setPrograms] = useState({});
     const [editingProgram, setEditingProgram] = useState(null);
-    const { setA_Ceo, en, setA_Why, setA_Aboutus, setA_Service, setA_Program, setA_Blog, setA_Event, setA_Staff, setA_Gallery, setA_Testimonials, a_Why, a_Ceo, a_Aboutus, a_Event, a_Service, a_Program, a_Blog, a_Staff, a_Gallery, a_Testimonials } = useStore();
-
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { en, setA_Event, a_Event } = useStore();
 
     const fetchPrograms = async () => {
-        const allRides = `${import.meta.env.VITE_API}/api/Events?offset=${offset}&limit=10`;
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API}/api/Events?offset=${offset}&limit=${limit}`);
+            if (!response.ok) throw new Error("Failed to fetch events");
+            const data = await response.json();
+            if (data.status === 1) {
+                setA_Event(data.data);
+                setLength(data.total);
+            }
+        } catch (error) {
+            console.error("Error fetching events:", error);
+            swal.fire({
+                title: "Error",
+                text: "Failed to fetch events",
+                icon: "error"
+            });
+        }
+    };
 
-        const response = await fetch(allRides, {
-            method: "GET",
-        });
-        if (!response.ok) {
-            throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        if (data.status === 1) {
-            setA_Event(data.data);
-        } else {
-            return;
-        }
-    }
     useEffect(() => {
         fetchPrograms();
     }, [offset]);
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`${import.meta.env.VITE_API}/api/Events/${id}`);
-            fetchPrograms();
-            swal.fire({
-                title: "Success",
-                text: "Program deleted successfully",
-                icon: "success",
+            const result = await swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
                 confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
             });
+
+            if (result.isConfirmed) {
+                await axios.delete(`${import.meta.env.VITE_API}/api/Events/${id}`);
+                fetchPrograms();
+                swal.fire("Deleted!", "Event has been deleted.", "success");
+            }
         } catch (error) {
-            console.error('Failed to delete the program', error);
+            console.error('Failed to delete the event', error);
             swal.fire({
                 title: "Error",
-                text: error.response.data.message,
-                icon: "error",
-                confirmButtonColor: "#d33",
+                text: error.response?.data?.message || "Failed to delete event",
+                icon: "error"
             });
         }
     };
 
     const onSubmit = async (data) => {
         const formData = new FormData();
-        if (editingProgram) {
-            for (const [key, value] of Object.entries(data)) {
-                if (key === 'img' && data.img) {
-                    if (data.img.length) {
-                        formData.append(key, data.img[0]);
-                    } else {
-                        formData.append(key, data.img);
-                    }
-                } else {
-                    formData.append(key, value);
-                    formData.append("_method", "PUT");
-                }
-            }
+        const isEditing = !!editingProgram;
 
-            try {
-                const response = await axios.post(`${import.meta.env.VITE_API}/api/Events/${editingProgram.id}`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-
-                const responseData = response.data;
-                console.log(responseData);
-                swal.fire({
-                    title: "Success",
-                    text: "Event updated successfully",
-                    icon: "success",
-                    confirmButtonColor: "#3085d6",
-                });
-                setEditingProgram(null);
-                toggleForm();
-                fetchPrograms();
-            } catch (error) {
-                console.error('Error:', error);
-                swal.fire({
-                    title: "Error",
-                    text: error.response.data.message,
-                    icon: "error",
-                    confirmButtonColor: "#d33",
-                });
+        Object.entries(data).forEach(([key, value]) => {
+            if (key === 'img' && value?.[0]) {
+                formData.append(key, value[0]);
+            } else if (value) {
+                formData.append(key, value);
             }
-        } else {
-            for (const [key, value] of Object.entries(data)) {
-                if (key === 'img' && data.img) {
-                    if (data.img.length) {
-                        formData.append(key, data.img[0]);
-                    } else {
-                        formData.append(key, data.img);
-                    }
-                } else {
-                    formData.append(key, value);
-                }
-            }
+        });
 
-            try {
-                const response = await axios.post(`${import.meta.env.VITE_API}/api/Events`, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
+        if (isEditing) formData.append("_method", "PUT");
 
-                const responseData = response.data;
-                console.log(responseData);
-                swal.fire({
-                    title: "Success",
-                    text: "Event Added successfully",
-                    icon: "success",
-                    confirmButtonColor: "#3085d6",
-                });
-                setEditingProgram(null);
-                toggleForm();
-                fetchPrograms();
-            } catch (error) {
-                console.error('Error:', error);
-                swal.fire({
-                    title: "Error",
-                    text: error.response.data.message,
-                    icon: "error",
-                    confirmButtonColor: "#d33",
-                });
-            }
+        try {
+            const url = isEditing 
+                ? `${import.meta.env.VITE_API}/api/Events/${editingProgram.id}`
+                : `${import.meta.env.VITE_API}/api/Events`;
+
+            const response = await axios.post(url, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            swal.fire({
+                title: "Success",
+                text: `Event ${isEditing ? 'updated' : 'added'} successfully`,
+                icon: "success"
+            });
+
+            setEditingProgram(null);
+            toggleForm();
+            fetchPrograms();
+        } catch (error) {
+            console.error('Error:', error);
+            swal.fire({
+                title: "Error",
+                text: error.response?.data?.message || "An error occurred",
+                icon: "error"
+            });
         }
     };
-  return (
-    <div className='pt-10'>
-      <ToastContainer />
 
-      <h1 className='text-center text-5xl text-color1 -700 display-1'>Events</h1>
-      <div className='w-full flex flex-row justify-between px-4 mb-4'>
-      <div className="mb-4 mx-10">
-  <label htmlFor="searchStudentId" className="block text-sm font-medium text-gray-700">Search by Events</label>
-  <div className="mt-1 relative rounded-md flex-row gap-4 shadow-sm">
-    <input
-      type="text"
-      name="searchEvents"
-      id="searchStudentId"
-      className="focus:ring-indigo-500 focus:border-indigo-500 block  pl-7 h-11 w-72 pr-12 sm:text-sm border border-gray-400 rounded-md"
-      placeholder="Enter title"
-      onChange={async (e) => {
-        const studentId = e.target.value;
-        if (studentId.trim() !== '') {
-          try {
-            const response = await fetch(`${import.meta.env.VITE_API}/api/Events/${studentId}`, { 
-              method: 'GET',
-            });
-            if (!response.ok) {
-              throw new Error("Failed to fetch data");
-            }
-            const data = await response.json();
-            if (data.status === 1) {
-              setA_Event(data.data); // Assuming the API returns a single student object
-            } else {
-              setA_Event([]); // Clear the list if no student is found or in case of other statuses
-            }
-          } catch (error) {
-            console.error('Error fetching event:', error);
-          }
-        } else {
-          fetchPrograms(); // Reset to original list if input is cleared
+    const columns = [
+        {
+            header: "Title",
+            field: "title",
+            render: (event) => en ? event.title : event.title_am
+        },
+        {
+            header: "Description",
+            field: "description",
+            render: (event) => (
+                <div className="truncate max-w-[200px]">{en ? event.description : event.description_am}</div>
+            )
+        },
+        {
+            header: "Location",
+            field: "location",
+            render: (event) => en ? event.location : event.location_am
+        },
+        {
+            header: "Date & Time",
+            field: "datetime",
+            render: (event) => (
+                <div className="flex flex-col">
+                    <span className="font-medium">{event.date}</span>
+                    <span className="text-sm text-gray-600">{event.time}</span>
+                </div>
+            )
         }
-      }}
-  
-  />
-  
-  </div>
-  
-</div>
-      <button onClick={() => { setEditingProgram(null); toggleForm(!showForm); }}className=' display-1 text-white font-semibold bg-color1 -600 h-12  rounded-lg px-3 py-2'>Add New Events</button>
-     
+    ];
 
-      </div>
-              <div className='rounded-lg shadow-2xl shadow-color2 -900/70 bg-white p-1 mx-5 min-h-[80vh] '>
-              <div className='overflow-x-auto'>
-              <table className="min-w-full divide-y divide-color1">
-  <thead className="bg-gray-200">
-    <tr>
-    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-        No
-      </th>
-      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-        Title
-      </th>
-      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-        Description
-      </th>
-      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-        Description in Amharic
-      </th>
-      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-        Location
-      </th>
-      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-        Location in Amharic
-      </th>
-      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-        Time & Date
-      </th>
-      <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-        Actions
-      </th>
-    </tr>
-  </thead>
-  <tbody className="bg-white divide-y divide-gray-200">
-    {a_Event.map((event , index) => (
-      <tr key={event.id}>
-              <td className="px-6 py-4 whitespace-nowrap">
-          <div className="text-sm font-bold text-gray-900">
-            {index + 1 + offset}
-          </div>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="text-sm font-medium text-gray-900">
-            {en ? event.title : event.title_am}
-          </div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="text-sm text-gray-900 truncate max-w-[200px]">{event.description}</div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="text-sm text-gray-900 truncate max-w-[200px]">{ event.description_am}</div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="text-sm text-gray-900">{ event.location }</div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="text-sm text-gray-900">{ event.location_am}</div>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <div className="text-sm text-gray-900">{`${event.time}, ${event.date}`}</div>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap flex flex-row justify-end gap-2">
-        <button onClick={() => { setEditingProgram(event); toggleForm(true); }} className='text-blue-500 hover:text-blue-700'>
-          <FontAwesomeIcon icon={faPenToSquare} className="text-lg" />
-        </button>
-          <button onClick={() => handleDelete(event.id)} className='text-red-500 hover:text-red-700'>
-          <FontAwesomeIcon icon="fa-solid fa-trash" className="text-lg" />
-        </button>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-<div className='flex justify-end mt-8 mx-10'>
+    return (
+        <div className="min-h-screen bg-gray-50 p-8">
+            <ToastContainer />
+            
+            <div className="mb-8">
+                <h1 className="text-4xl font-bold text-gray-800 text-center mb-2">Events Management</h1>
+                <p className="text-gray-600 text-center">Manage all your events in one place</p>
+            </div>
 
-<button onClick={handlePrevious} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl' disabled={offset === 0}>Previous</button>
-    <button onClick={handleNext} className='border text-teal-700 hover:bg-teal-600 hover:text-white border-teal-500 px-3 py-2 mx-2 rounded-xl'>Next</button>
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="w-full md:w-1/3">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Search Events</label>
+                        <input
+                            type="text"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Search by title..."
+                            onChange={async (e) => {
+                                const searchTerm = e.target.value.trim();
+                                if (searchTerm) {
+                                    try {
+                                        const response = await fetch(`${import.meta.env.VITE_API}/api/Events/${searchTerm}`);
+                                        const data = await response.json();
+                                        if (data.status === 1) {
+                                            setA_Event(data.data);
+                                        } else {
+                                            setA_Event([]);
+                                        }
+                                    } catch (error) {
+                                        console.error('Error searching events:', error);
+                                    }
+                                } else {
+                                    fetchPrograms();
+                                }
+                            }}
+                        />
+                    </div>
 
-</div>
-</div>
-</div>
-<button onClick={toggleForm}>X</button>
-  {showForm &&(  <div className='bg-black/60 ' style={{ position: 'absolute', top: '0%', left: '0%', width: '100%', height: '100%', overflowY: 'auto',  padding: '20px' }}>
-  <button onClick={toggleForm} className=' text-white text-xl mx-[95%] my-12 z-50 bg-red-600 rounded-full h-10 w-10 '>X</button>
+                    <button 
+                        onClick={() => { setEditingProgram(null); toggleForm(true); }}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+                    >
+                        <FontAwesomeIcon icon="plus" />
+                        Add New Event
+                    </button>
+                </div>
+            </div>
 
-  {showForm && (
-        <ProgramForm onSubmit={onSubmit} initialValues={editingProgram || {}} />
-      )}
-   
-    </div>
-    
-)};
-    </div>
-  );
+            <div className="bg-white rounded-lg shadow-md">
+                <DashboardTable 
+                    columns={columns}
+                    data={a_Event}
+                    onEdit={(event) => { setEditingProgram(event); toggleForm(true); }}
+                    onDelete={handleDelete}
+                    offset={offset}
+                    onPrevious={handlePrevious}
+                    onNext={handleNext}
+                    totalLength={length || a_Event.length}
+                    limit={limit}
+                />
+            </div>
+
+            {showForm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-800">
+                                    {editingProgram ? 'Edit Event' : 'Add New Event'}
+                                </h2>
+                                <button 
+                                    onClick={toggleForm}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                >
+                                    <FontAwesomeIcon icon="times" className="text-gray-600" />
+                                </button>
+                            </div>
+                            <ProgramForm onSubmit={onSubmit} initialValues={editingProgram || {}} />
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default Events;
+
 function ProgramForm({ onSubmit, initialValues }) {
+    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+        defaultValues: initialValues,
+    });
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
-    defaultValues: initialValues,
-  });
+    useEffect(() => {
+        reset(initialValues);
+    }, [initialValues, reset]);
 
-  useEffect(() => {
-    reset(initialValues); // Reset form with initialValues when they change
-  }, [initialValues, reset]);
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input 
+                        {...register('title', { required: "Title is required" })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter title"
+                    />
+                    {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
+                </div>
 
-  return (
-    <div className='fixed inset-32 flex items-center justify-center p-10'>
-    <div className='bg-white rounded-lg shadow-2xl p-8 max-w-4xl w-full overflow-y-auto'>
-      <h1 className='text-3xl text-center font-bold text-purple-700'>Add Event Details</h1>
-      <form className='mt-10 space-y-6' onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          {/* Title and Title in Amharic */}
-          <div className='flex flex-col'>
-            <label className='font-semibold'>Title</label>
-            <input className='border border-purple-600 rounded-md p-2' {...register('title', { required: "Title is required" })} placeholder="Title" />
-            {errors.title && <p className='text-red-500 text-xs mt-1'>{errors.title.message}</p>}
-          </div>
-          <div className='flex flex-col'>
-            <label className='font-semibold'>Title in Amharic</label>
-            <input className='border border-purple-600 rounded-md p-2' {...register('title_am', { required: "Title in Amharic is required" })} placeholder="Title in Amharic" />
-            {errors.title_am && <p className='text-red-500 text-xs mt-1'>{errors.title_am.message}</p>}
-          </div>
-  
-          {/* Description and Description in Amharic */}
-          <div className='flex flex-col'>
-            <label className='font-semibold'>Description</label>
-            <textarea className='border border-purple-600 rounded-md p-2 h-24' {...register('description', { required: "Description is required" })} placeholder="Description" />
-            {errors.description && <p className='text-red-500 text-xs mt-1'>{errors.description.message}</p>}
-          </div>
-          <div className='flex flex-col'>
-            <label className='font-semibold'>Description in Amharic</label>
-            <textarea className='border border-purple-600 rounded-md p-2 h-24' {...register('description_am', { required: "Description in Amharic is required" })} placeholder="Description in Amharic" />
-            {errors.description_am && <p className='text-red-500 text-xs mt-1'>{errors.description_am.message}</p>}
-          </div>
-  
-          {/* Location and Location in Amharic */}
-          <div className='flex flex-col'>
-            <label className='font-semibold'>Location</label>
-            <input className='border border-purple-600 rounded-md p-2' {...register('location', { required: "Location is required" })} placeholder="Location" />
-            {errors.location && <p className='text-red-500 text-xs mt-1'>{errors.location.message}</p>}
-          </div>
-          <div className='flex flex-col'>
-            <label className='font-semibold'>Location in Amharic</label>
-            <input className='border border-purple-600 rounded-md p-2' {...register('location_am', { required: "Location in Amharic is required" })} placeholder="Location in Amharic" />
-            {errors.location_am && <p className='text-red-500 text-xs mt-1'>{errors.location_am.message}</p>}
-          </div>
-  
-          {/* Time and Date */}
-          <div className='flex flex-col'>
-            <label className='font-semibold'>Time</label>
-            <input className='border border-purple-600 rounded-md p-2' type="time" {...register('time', { required: "Time is required" })} placeholder="Time" />
-            {errors.time && <p className='text-red-500 text-xs mt-1'>{errors.time.message}</p>}
-          </div>
-          <div className='flex flex-col'>
-            <label className='font-semibold'>Date</label>
-            <input className='border border-purple-600 rounded-md p-2' type="date" {...register('date', { required: "Date is required" })} />
-            {errors.date && <p className='text-red-500 text-xs mt-1'>{errors.date.message}</p>}
-          </div>
-        </div>
-  
-        {/* Image Upload */}
-        <div className='flex flex-col'>
-          <label className='font-semibold'>Image</label>
-          <input className='border border-purple-600 rounded-md p-2' type="file" {...register('img' ,{ required: !initialValues.id })} placeholder="Upload Image" />
-          {errors.img && <p className="text-red-500 text-xs italic">Image is required</p>}
-        </div>
-  
-        {/* Submit Button */}
-        <div className='flex justify-center'>
-          <button type="submit" className='bg-purple-700 text-white rounded-md px-10 py-3 transition duration-300 ease-in-out hover:bg-purple-800 w-full max-w-xs'>
-            Submit
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-  
-  );
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title in Amharic</label>
+                    <input 
+                        {...register('title_am', { required: "Title in Amharic is required" })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter title in Amharic"
+                    />
+                    {errors.title_am && <p className="mt-1 text-sm text-red-600">{errors.title_am.message}</p>}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea 
+                        {...register('description', { required: "Description is required" })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows="4"
+                        placeholder="Enter description"
+                    />
+                    {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description in Amharic</label>
+                    <textarea 
+                        {...register('description_am', { required: "Description in Amharic is required" })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows="4"
+                        placeholder="Enter description in Amharic"
+                    />
+                    {errors.description_am && <p className="mt-1 text-sm text-red-600">{errors.description_am.message}</p>}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <input 
+                        {...register('location', { required: "Location is required" })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter location"
+                    />
+                    {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Location in Amharic</label>
+                    <input 
+                        {...register('location_am', { required: "Location in Amharic is required" })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter location in Amharic"
+                    />
+                    {errors.location_am && <p className="mt-1 text-sm text-red-600">{errors.location_am.message}</p>}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                    <input 
+                        type="time"
+                        {...register('time', { required: "Time is required" })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {errors.time && <p className="mt-1 text-sm text-red-600">{errors.time.message}</p>}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input 
+                        type="date"
+                        {...register('date', { required: "Date is required" })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>}
+                </div>
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Event Image</label>
+                <input 
+                    type="file"
+                    {...register('img', { required: !initialValues.id })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    accept="image/*"
+                />
+                {errors.img && <p className="mt-1 text-sm text-red-600">{errors.img.message}</p>}
+            </div>
+
+            <div className="flex justify-end gap-4">
+                <button
+                    type="button"
+                    onClick={() => reset()}
+                    className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                >
+                    Reset
+                </button>
+                <button
+                    type="submit"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                    {initialValues.id ? 'Update Event' : 'Create Event'}
+                </button>
+            </div>
+        </form>
+    );
 }
