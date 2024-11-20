@@ -91,37 +91,37 @@ const Events = ({ isHome = false }) => {
   const renderEventCard = (event, index, offset = 0) => (
     <motion.div
       key={event.id}
-      className={`w-full max-w-[90vw] sm:max-w-[26rem] md:max-w-[32rem] lg:max-w-2xl relative group snap-center rounded-[2rem] shadow-2xl hover:shadow-3xl transition-all duration-700 mx-auto bg-white/95 backdrop-blur-md`}
+      className={`w-full max-w-[90vw] sm:max-w-[24rem] md:max-w-[30rem] lg:max-w-xl relative group snap-center rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 mx-auto bg-white/90 backdrop-blur-md`}
       initial={{ opacity: 0, x: 50 }}
       animate={{ 
         opacity: 1, 
-        x: offset * (window.innerWidth < 768 ? 120 : 350),
-        scale: 1 - Math.abs(offset) * (window.innerWidth < 768 ? 0.07 : 0.12),
+        x: offset * (window.innerWidth < 768 ? 100 : 300),
+        scale: 1 - Math.abs(offset) * (window.innerWidth < 768 ? 0.05 : 0.1),
         zIndex: 10 - Math.abs(offset)
       }}
       transition={{ 
-        duration: 0.8,
+        duration: 0.7,
         ease: "easeInOut"
       }}
       style={{ 
         position: 'absolute',
         left: window.innerWidth < 768 ? '0%' : '30%',
-        transform: `translate(-50%, 0) translateX(${offset * (window.innerWidth < 768 ? 60 : 120)}px)`,
-        filter: `blur(${Math.abs(offset) * 1.2}px)`,
+        transform: `translate(-50%, 0) translateX(${offset * (window.innerWidth < 768 ? 50 : 100)}px)`,
+        filter: `blur(${Math.abs(offset) * 1}px)`,
         pointerEvents: offset === 0 ? 'auto' : 'none'
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      whileHover={{ scale: offset === 0 ? 1.03 : 1 }}
+      whileHover={{ scale: offset === 0 ? 1.02 : 1 }}
     >
-      <div className="rounded-[2rem] overflow-hidden transition-all duration-500">
-        <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-10">
+      <div className="rounded-3xl overflow-hidden transition-all duration-500">
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
           <motion.div 
-            className="bg-gradient-to-r from-color1 via-secondary to-color1 text-white px-10 py-4 rounded-full font-bold shadow-xl"
-            animate={{ scale: [1, 1.06, 1] }}
+            className="bg-gradient-to-r from-color1 via-secondary to-color1 text-white px-8 py-3 rounded-full font-bold shadow-xl"
+            animate={{ scale: [1, 1.05, 1] }}
             transition={{ 
-              duration: 2.5,
+              duration: 2,
               repeat: Infinity,
               ease: "easeInOut"
             }}
@@ -134,42 +134,42 @@ const Events = ({ isHome = false }) => {
           <motion.img
             src={`${import.meta.env.VITE_IMG_URL}/${event.image}`}
             alt="Event"
-            className="w-full object-cover h-[20rem] sm:h-[24rem] md:h-[28rem] transform hover:scale-110 transition-transform duration-700"
-            whileHover={{ scale: 1.1 }}
-            transition={{ duration: 0.8 }}
+            className="w-full object-cover h-[18rem] sm:h-[22rem] md:h-[26rem]"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.7 }}
           />
-          <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/95 via-black/60 to-transparent text-white p-10 backdrop-blur-sm">
+          <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent text-white p-8 backdrop-blur-sm">
             <motion.span 
-              className="flex items-center justify-between gap-4"
+              className="flex items-center justify-between"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="flex items-center space-x-3 bg-white/15 px-5 py-3 rounded-full backdrop-blur-md hover:bg-white/25 transition-all duration-300">
-                <i className="fas fa-calendar-alt text-secondary text-xl"></i>
-                <span className="font-medium text-lg">{event.time}</span>
+              <div className="flex items-center space-x-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md hover:bg-white/20 transition-all duration-300">
+                <i className="fas fa-calendar-alt text-secondary text-lg"></i>
+                <span className="font-medium">{event.time}</span>
               </div>
-              <div className="flex items-center space-x-3 bg-white/15 px-5 py-3 rounded-full backdrop-blur-md hover:bg-white/25 transition-all duration-300">
-                <i className="fas fa-map-marker-alt text-secondary text-xl"></i>
-                <span className="font-medium text-lg">{en ? event.location : event.location_am}</span>
+              <div className="flex items-center space-x-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-md hover:bg-white/20 transition-all duration-300">
+                <i className="fas fa-map-marker-alt text-secondary text-lg"></i>
+                <span className="font-medium">{en ? event.location : event.location_am}</span>
               </div>
             </motion.span>
           </div>
         </div>
 
-        <div className="p-10">
+        <div className="p-8">
           <motion.h3 
-            className="text-3xl font-bold bg-gradient-to-r from-color1 to-secondary bg-clip-text text-transparent hover:from-secondary hover:to-color1 transition-all duration-500 mb-6 cursor-pointer"
+            className="text-2xl font-bold bg-gradient-to-r from-color1 to-secondary bg-clip-text text-transparent hover:from-secondary hover:to-color1 transition-all duration-500 mb-4 cursor-pointer"
             whileHover={{ scale: 1.02 }}
           >
             {en ? event.title : event.title_am}
           </motion.h3>
-          <div className="h-72 overflow-auto custom-scrollbar pr-6">
+          <div className="h-64 overflow-auto custom-scrollbar pr-4">
             <motion.p 
               className="text-gray-700 leading-relaxed text-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.5 }}
             >
               {en ? event.description : event.description_am}
             </motion.p>
@@ -183,22 +183,22 @@ const Events = ({ isHome = false }) => {
     if (isLoading) {
       return (
         <motion.div
-          className="w-full flex justify-center items-center min-h-[600px]"
+          className="w-full flex justify-center items-center min-h-[500px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          <div className="flex flex-col items-center space-y-8">
+          <div className="flex flex-col items-center space-y-6">
             <motion.div 
-              className="w-24 h-24 border-5 border-color1 border-t-transparent rounded-full"
+              className="w-20 h-20 border-4 border-color1 border-t-transparent rounded-full"
               animate={{ rotate: 360 }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             />
             <motion.p 
-              className="text-2xl text-color1 font-semibold"
+              className="text-xl text-color1 font-semibold"
               animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
+              transition={{ duration: 1.5, repeat: Infinity }}
             >
               Loading amazing events...
             </motion.p>
@@ -210,31 +210,31 @@ const Events = ({ isHome = false }) => {
     if (!a_Event.length) {
       return (
         <motion.div
-          className="flex flex-col w-full justify-center items-center py-20 h-[45vh] bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl"
+          className="flex flex-col w-full justify-center items-center py-16 h-[40vh] bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
         >
           <motion.div 
-            className="mb-8"
-            animate={{ y: [0, -12, 0] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            className="mb-6"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <i className="fas fa-calendar-times text-8xl text-color1"></i>
+            <i className="fas fa-calendar-times text-7xl text-color1"></i>
           </motion.div>
           <motion.p 
-            className="text-4xl text-color1 font-bold display-1"
+            className="text-3xl text-color1 font-bold display-1"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
           >
             No events scheduled yet
           </motion.p>
           <motion.p 
-            className="text-gray-600 mt-5 text-xl"
+            className="text-gray-600 mt-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
           >
             Check back soon for upcoming events!
           </motion.p>
@@ -243,7 +243,7 @@ const Events = ({ isHome = false }) => {
     }
 
     return (
-      <div className="relative w-full flex justify-center items-center min-h-[800px] sm:min-h-[900px] md:min-h-[1000px]">
+      <div className="relative w-full flex justify-center items-center min-h-[750px] sm:min-h-[850px] md:min-h-[950px]">
         {window.innerWidth < 768 
           ? [-1, 0, 1].map((offset) => {
               const index = (currentIndex + offset + a_Event.length) % a_Event.length;
@@ -262,28 +262,28 @@ const Events = ({ isHome = false }) => {
     <>
       {!isHome && <Hero eng="Events" amh="ክስተቶች"/>}
 
-      <section className="bg-gradient-to-b from-white via-gray-50 to-white relative overflow-hidden">
-        {/* Enhanced Decorative SVG Background Elements */}
-        <div className="absolute inset-0 pointer-events-none opacity-70">
-          <svg className="absolute top-0 left-0 w-40 h-40 text-color1/15 animate-pulse" viewBox="0 0 100 100">
+      <section className="bg-gradient-to-b from-white via-gray-100 to-white relative overflow-hidden">
+        {/* Decorative SVG Background Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <svg className="absolute top-0 left-0 w-32 h-32 text-color1/10" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="40" fill="currentColor" />
           </svg>
-          <svg className="absolute top-1/4 right-0 w-56 h-56 text-secondary/15 animate-bounce" viewBox="0 0 100 100">
+          <svg className="absolute top-1/4 right-0 w-48 h-48 text-secondary/10" viewBox="0 0 100 100">
             <path d="M0,50 a1,1 0 0,0 100,0" fill="currentColor" />
           </svg>
-          <svg className="absolute bottom-0 left-1/4 w-48 h-48 text-color1/15 animate-pulse" viewBox="0 0 100 100">
+          <svg className="absolute bottom-0 left-1/4 w-40 h-40 text-color1/10" viewBox="0 0 100 100">
             <polygon points="50,0 100,87 0,87" fill="currentColor" />
           </svg>
         </div>
 
-        <div className="container mx-auto px-6 sm:px-8 py-16 sm:py-24 lg:py-32 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-20 lg:py-28 relative z-10">
           <motion.div
-            className="absolute inset-0 opacity-80"
+            className="absolute inset-0 opacity-75"
             animate={{
               backgroundPosition: ["0% 0%", "100% 100%"],
             }}
             transition={{
-              duration: 30,
+              duration: 25,
               repeat: Infinity,
               repeatType: "reverse",
               ease: "linear"
@@ -291,23 +291,23 @@ const Events = ({ isHome = false }) => {
           />
 
           <motion.div
-            className="text-center max-w-5xl mx-auto mb-16 sm:mb-24"
+            className="text-center max-w-4xl mx-auto mb-12 sm:mb-20"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
           >
             <motion.h4 
-              className="inline-block px-10 py-4 bg-color1/10 text-color1 rounded-full text-2xl font-bold mb-8"
+              className="inline-block px-8 py-3 bg-color1/10 text-color1 rounded-full text-xl font-bold mb-6"
               whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.3 }}
             >
               {en ? "Our Events" : "የሚቀጥሉ ክስተቶቻችን"}
             </motion.h4>
             <motion.h1 
-              className="bg-gradient-to-r from-secondary to-color1 bg-clip-text text-transparent text-5xl sm:text-7xl lg:text-8xl display-1 font-bold mb-8 sm:mb-10"
+              className="bg-gradient-to-r from-secondary to-color1 bg-clip-text text-transparent text-4xl sm:text-6xl lg:text-7xl display-1 font-bold mb-6 sm:mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
+              transition={{ delay: 0.2, duration: 0.7 }}
             >
               {en ? "Our Upcoming Events" : "እኛ የምናቀርባቸው ክስተቶች"}
             </motion.h1>
@@ -316,23 +316,23 @@ const Events = ({ isHome = false }) => {
           <div className="relative flex justify-center items-center">
             <motion.button 
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white p-5 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
-              whileHover={{ scale: 1.15 }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <i className="fas fa-chevron-left text-3xl text-color1"></i>
+              <i className="fas fa-chevron-left text-2xl text-color1"></i>
             </motion.button>
             
             <motion.button 
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 hover:bg-white p-5 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
-              whileHover={{ scale: 1.15 }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <i className="fas fa-chevron-right text-3xl text-color1"></i>
+              <i className="fas fa-chevron-right text-2xl text-color1"></i>
             </motion.button>
 
-            <div className="w-full flex justify-center items-center py-8 sm:py-12 px-6 sm:px-8">
+            <div className="w-full flex justify-center items-center py-6 sm:py-10 px-4 sm:px-6">
               <AnimatePresence mode="wait">
                 {renderContent()}
               </AnimatePresence>
