@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../store/store';
 import fot from '../assets/img/fot.webp';
 import Hero1 from "../assets/img/hero7.webp";
-function Gallery() {
+import Hero from './hero';
+function Gallery({ isHome = false }) {
     const { en, a_Gallery, setA_Gallery } = useStore();
     const [catagory, setCatagory] = useState([]);
     const [filter, setFilter] = useState("all");
@@ -84,18 +85,8 @@ function Gallery() {
                 </svg>
             </div>
 
-            {/* Minimalist Hero */}
-            <div className="relative h-[90vh] flex items-center justify-center bg-cover"   style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.2), rgba(55, 55, 55, 0.2)), url(${Hero1})` }}>
-                <motion.h1 
-                    initial={{ y: 30, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className="text-8xl font-light tracking-tight relative z-10 text-white display-6"
-                  
-                >
-                    {en ? 'Gallery' : 'ጋለሪ'}
-                </motion.h1>
-            </div>
 
+            {!isHome && <Hero eng="Gallery" amh="ጋለሪ"/>}
             {/* Minimal Filter Pills */}
             <div className="container mx-auto px-4 relative z-10 mt-5">
                 <motion.div 
